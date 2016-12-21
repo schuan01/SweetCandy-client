@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">TestNode</string>
+
+    <string name="connect">Conectado!</string>
+    <string name="disconnect">Desconectado, Por favor verifica la conexion</string>
+    <string name="error_connect">Fallo al conectar</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_sign_up">Registrarse</string>
+    <string name="title_activity_log_in">Login</string>
+
+</resources>
