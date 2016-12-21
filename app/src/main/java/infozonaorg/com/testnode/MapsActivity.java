@@ -102,7 +102,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //Algo
     boolean mRequestingLocationUpdates = true;
 
-    //Alerta Aceptar solicitud
+    //Alerta Aceptar solicituds
     AlertDialog alertaSolicitud = null;
 
     @Override
@@ -307,7 +307,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     } catch (JSONException e)
                     {
                         Log.e("Error", e.getMessage());
-                        return;
+
                     }
                 }
             });
@@ -412,7 +412,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     } catch (Exception e)
                     {
                         Log.e("Error", e.getMessage());
-                        return;
+
                     }
                 }
             });
@@ -481,7 +481,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
                 }
-                return;
+
             }
 
             // other 'case' lines to check for other
