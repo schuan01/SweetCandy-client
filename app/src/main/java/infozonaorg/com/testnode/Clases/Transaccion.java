@@ -1,5 +1,8 @@
 package infozonaorg.com.testnode.Clases;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Date;
 
 /**
@@ -93,5 +96,25 @@ public class Transaccion
         setFechaFinTransaccion(new Date());
         setActiva(false);
         setTotalTransaccion(0.00f);
+    }
+
+    public JSONObject toJSON(){
+
+        JSONObject jsonObject= new JSONObject();
+        try {
+            jsonObject.put("id", getIdTransaccion());
+            jsonObject.put("totalTransaccion", getTotalTransaccion());
+            jsonObject.put("fechaInicioTransaccion", getFechaInicioTransaccion());
+            jsonObject.put("fechaFinTransaccion", getFechaFinTransaccion());
+            jsonObject.put("isActiva", isActiva());
+            jsonObject.put("clienteTransaccion", getClienteTransaccion().toJSON());
+            jsonObject.put("empleadoTransaccion", getEmpleadoTransaccion().toJSON());
+
+            return jsonObject;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+
     }
 }

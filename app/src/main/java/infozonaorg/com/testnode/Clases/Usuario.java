@@ -5,6 +5,9 @@ import android.os.Parcelable;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -109,9 +112,28 @@ public class Usuario
 
     }
 
+    public Usuario(JSONObject obj){
+        try
+        {
+            setId(obj.getInt("id"));
+            setUsuario(obj.getString("usuario"));
+            setUrlFoto(obj.getString("urlFoto"));
+            setUbicacion(new LatLng(obj.getDouble("latitud"),obj.getDouble("longitud")));
+            setEdad(obj.getInt("edad"));
+            setOnline(obj.getBoolean("isOnline"));
+            setEmail(obj.getString("email"));
+        }
+        catch (JSONException e)
+        {
+            e.printStackTrace();
+        }
+
+    }
+
 
 
     public Usuario(){
+
         setId(0);
         setUsuario("Default");
         setUrlFoto("Default_Foto");
@@ -120,6 +142,27 @@ public class Usuario
         setOnline(false);
         setEmail("test@test.com");
         setPassword("1234");
+
+    }
+
+    public JSONObject toJSON(){
+
+        JSONObject jsonObject= new JSONObject();
+        try {
+            jsonObject.put("id", getId());
+            jsonObject.put("usuario", getUsuario());
+            jsonObject.put("edad", getEdad());
+            jsonObject.put("email", getEmail());
+            jsonObject.put("isOnline", getOnline());
+            jsonObject.put("latitud", getUbicacion().latitude);
+            jsonObject.put("longitud", getUbicacion().longitude);
+            jsonObject.put("urlFoto", getUrlFoto());
+
+            return jsonObject;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
 
     }
 

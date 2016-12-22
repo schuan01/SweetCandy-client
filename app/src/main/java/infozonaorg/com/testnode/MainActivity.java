@@ -97,6 +97,16 @@ public class MainActivity extends AppCompatActivity
         //FIN SOCKETS ----------------------------------------------------------------
     }
 
+    private void desconectarSocket()
+    {
+        mSocket.disconnect();
+
+        mSocket.off(Socket.EVENT_CONNECT, onConnect);
+        mSocket.off(Socket.EVENT_DISCONNECT, onDisconnect);
+        mSocket.off(Socket.EVENT_CONNECT_ERROR, onConnectError);
+        mSocket.off(Socket.EVENT_CONNECT_TIMEOUT, onConnectError);
+    }
+
     private Emitter.Listener onConnect = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
@@ -139,6 +149,38 @@ public class MainActivity extends AppCompatActivity
             });
         }
     };
+
+    protected void onStart() {
+        Log.w("onStart()","Ejecutado");
+        super.onStart();
+    }
+
+    protected void onStop() {
+
+        Log.w("onStop()","Ejecutado");
+        super.onStop();
+    }
+
+    @Override
+    protected void onPause() {
+        Log.w("onPause()","Ejecutado");
+        super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        Log.w("onResume()","Ejecutado");
+        super.onResume();
+    }
+
+    @Override
+    public void onDestroy()
+    {
+        desconectarSocket();
+        Log.w("onDestroy()","Ejecutado");
+        super.onDestroy();
+
+    }
 }
 
 

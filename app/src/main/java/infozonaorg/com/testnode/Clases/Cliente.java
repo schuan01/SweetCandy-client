@@ -2,6 +2,8 @@ package infozonaorg.com.testnode.Clases;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import org.json.JSONObject;
+
 /**
  * Created by jvolpe on 30/11/2016.
  */
@@ -57,4 +59,6 @@ public class Cliente extends Usuario {
     public Cliente() {
         super();
     }
+
+    public Cliente(JSONObject obj){super(obj);}
 }

@@ -44,7 +44,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.sql.Array;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import infozonaorg.com.testnode.Clases.Cliente;
@@ -105,10 +107,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //Alerta Aceptar solicituds
     AlertDialog alertaSolicitud = null;
 
+    //Transaccion Actual
+    Transaccion transaccionActual = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        Log.w("OnCreate","Ejecutado!");
         buildGoogleApiClient();
         mGoogleApiClient.connect();
         createLocationRequest();
@@ -121,7 +127,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mSocket.on(Socket.EVENT_CONNECT_ERROR, onConnectError);
         mSocket.on(Socket.EVENT_CONNECT_TIMEOUT, onConnectError);
         mSocket.on("empleadoscercanos", onCercanos);//obtiene los cercanos
-        mSocket.on("solicitudcliente", onSolicitudCliente);//obtiene los cercanos
+        mSocket.on("solicitudcliente", onSolicitudCliente);//solicitud aceptada del servidor
+        mSocket.on("transaccioniniciada", onTransaccionIniciada);//comieza la transaccion
+
 
         //BOTON INCIO LOGIN
         Button btnEnviar = (Button) findViewById(R.id.btnBuscarDisponible);
@@ -371,8 +379,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                                     t.setActiva(true);//Empieza a estar activa
                                                     t.setFechaFinTransaccion(null);
                                                     transaccion.put("id", t.getIdTransaccion());
-                                                    transaccion.put("empleadoTransaccion", empleadoConectado.getId());
-                                                    transaccion.put("clienteTransaccion", c.getId());
+                                                    transaccion.put("empleadoTransaccion", empleadoConectado.toJSON());
+                                                    transaccion.put("clienteTransaccion", c.toJSON());
                                                     transaccion.put("fechaInicioTransaccion", t.getFechaInicioTransaccion());
                                                     transaccion.put("fechaFinTransaccion", t.getFechaFinTransaccion());
                                                     transaccion.put("isActiva", t.isActiva());
@@ -408,6 +416,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
                         }
+
+                    } catch (Exception e)
+                    {
+                        Log.e("Error", e.getMessage());
+
+                    }
+                }
+            });
+
+
+        }
+    };
+
+    //Obtiene los usuarios cercanos cuando el servidor lo manda
+    private Emitter.Listener onTransaccionIniciada = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args)
+        {
+            MapsActivity.this.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try
+                    {
+
+
+                            final JSONObject data = (JSONObject) args[0];//Obtenemos el unico elemento
+                            transaccionActual = new Transaccion();
+                            transaccionActual.setIdTransaccion(data.getInt("id"));
+                            transaccionActual.setActiva(true);
+                            Date fechaIni = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(data.getString("fechaInicioTransaccion"));
+                            transaccionActual.setFechaInicioTransaccion(fechaIni);
+                            transaccionActual.setEmpleadoTransaccion(new Empleado(new JSONObject(data.getString("empleadoTransaccion"))));
+                            transaccionActual.setClienteTransaccion(new Cliente(new JSONObject(data.getString("clienteTransaccion"))));
+                            mSocket.on("solicitudcliente",onSolicitudCliente);
+                            Toast.makeText(getApplicationContext(),
+                                   "T:" + transaccionActual.getIdTransaccion() + " E:"
+                                           + transaccionActual.getEmpleadoTransaccion().getId() + " C:"
+                                           + transaccionActual.getClienteTransaccion().getId(), Toast.LENGTH_LONG).show();
+
+
+
 
                     } catch (Exception e)
                     {
@@ -496,7 +545,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Sacar el desconectar del onDestroy y manejarlo mejor
         Log.w("onDestroy()","Ejecutado");
         desconectarUsuario();
-        mSocket.off("empleadoscercanos", onCercanos);//Dejamos de escuchar los cercanos sin desconectar el socket
+        desconectarSocket();
         super.onDestroy();
 
     }
@@ -527,6 +576,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mSocket.off(Socket.EVENT_CONNECT_ERROR, onConnectError);
         mSocket.off(Socket.EVENT_CONNECT_TIMEOUT, onConnectError);
         mSocket.off("empleadoscercanos", onCercanos);//obtiene los cercanos
+        mSocket.off("solicitudcliente", onSolicitudCliente);//maneja la respuesta del servidor a la solicitud cliente
+
     }
 
     private void conectarSocket()
@@ -536,6 +587,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mSocket.on(Socket.EVENT_CONNECT_ERROR, onConnectError);
         mSocket.on(Socket.EVENT_CONNECT_TIMEOUT, onConnectError);
         mSocket.on("empleadoscercanos", onCercanos);//obtiene los cercanos
+        mSocket.on("solicitudcliente", onSolicitudCliente);//solicitud aceptada del servidor
+        mSocket.on("transaccioniniciada", onTransaccionIniciada);//comieza la transaccion
         mSocket.connect();
     }
 
@@ -695,64 +748,54 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         if(tipoUsuario.equals("Cliente"))
         {
-            JSONObject informacion = new JSONObject();
             try
             {
 
-                informacion.put("id", clienteConectado.getId());
-                informacion.put("usuario", clienteConectado.getUsuario());
+                mSocket.emit("buscardisponible",clienteConectado.toJSON());
 
 
-            } catch (JSONException e) {
+            } catch (Exception e) {
 
                 e.printStackTrace();
             }
 
-            mSocket.emit("buscardisponible",informacion);
+
+
+
 
         }
         else if(tipoUsuario.equals("Empleado"))
         {
             //TODO
             //BORRAR
-            JSONObject cliente = new JSONObject();
             Cliente c = new Cliente();
-            try {
-                cliente.put("id", c.getId());
-                cliente.put("usuario", c.getUsuario());
-                cliente.put("tipo", "Cliente");
+            JSONObject cliente = null;
+            JSONObject empleado = null;
+            JSONObject transaccion = null;
 
-            } catch (JSONException e) {
+            try {
+                cliente =c.toJSON();
+                cliente.put("tipo","Cliente");
+                empleado = empleadoConectado.toJSON();
+                empleado.put("tipo","Empleado");
+
+            } catch (Exception e) {
 
                 e.printStackTrace();
             }
 
-            JSONObject empleado = new JSONObject();
-            try {
-                empleado.put("id", empleadoConectado.getId());
-                empleado.put("usuario", empleadoConectado.getUsuario());
-                empleado.put("tipo", "Empleado");
 
-            } catch (JSONException e) {
 
-                e.printStackTrace();
-            }
 
-            JSONObject transaccion = new JSONObject();
             try
             {
                 Transaccion t = new Transaccion();
                 t.setFechaFinTransaccion(null);
-                transaccion.put("id", t.getIdTransaccion());
-                transaccion.put("empleadoTransaccion", empleadoConectado.getId());
-                transaccion.put("clienteTransaccion", c.getId());
-                transaccion.put("fechaInicioTransaccion", t.getFechaInicioTransaccion());
-                transaccion.put("fechaFinTransaccion", t.getFechaFinTransaccion());
-                transaccion.put("isActiva", t.isActiva());
-                transaccion.put("totalTransaccion", t.getTotalTransaccion());
-                transaccion.put("tipo", "Transaccion");
+                t.setEmpleadoTransaccion(empleadoConectado);
+                t.setClienteTransaccion(c);
+                transaccion = t.toJSON();
 
-            } catch (JSONException e) {
+            } catch (Exception e) {
 
                 e.printStackTrace();
             }

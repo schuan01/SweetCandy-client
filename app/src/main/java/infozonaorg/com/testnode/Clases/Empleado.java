@@ -1,6 +1,10 @@
 package infozonaorg.com.testnode.Clases;
 
+import com.google.ads.mediation.EmptyNetworkExtras;
 import com.google.android.gms.maps.model.LatLng;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Created by jvolpe on 30/11/2016.
@@ -47,6 +51,21 @@ public class Empleado extends Usuario {
         setCosto(costo);
     }
 
+    public Empleado(JSONObject obj)
+    {
+        super(obj);
+        try {
+
+        setDescripcion(obj.getString("descripcion"));
+        setCosto(Float.parseFloat(obj.getString("costo")));
+        setRating(Float.parseFloat(obj.getString("rating")));
+
+        } catch (JSONException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
     public Empleado() {
         super();
 
@@ -54,5 +73,23 @@ public class Empleado extends Usuario {
         setDescripcion("Default");
         setCosto(0);
 
+    }
+
+    @Override
+    public JSONObject toJSON()
+    {
+        try {
+        JSONObject jsonObject= super.toJSON();
+
+        jsonObject.put("rating", getRating());
+        jsonObject.put("descripcion", getDescripcion());
+        jsonObject.put("costo", getCosto());
+
+        return jsonObject;
+        } catch (JSONException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
