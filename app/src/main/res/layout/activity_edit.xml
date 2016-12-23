@@ -11,8 +11,8 @@ android:paddingLeft="@dimen/activity_horizontal_margin"
 android:paddingRight="@dimen/activity_horizontal_margin"
 android:paddingTop="@dimen/activity_vertical_margin"
 app:layout_behavior="@string/appbar_scrolling_view_behavior"
-tools:context="infozonaorg.com.testnode.SignUpActivity"
-tools:showIn="@layout/activity_sign_up"
+tools:context="infozonaorg.com.testnode.EditActivity"
+tools:showIn="@layout/activity_edit"
 android:fitsSystemWindows="true">
 
 <LinearLayout
@@ -28,7 +28,7 @@ android:fitsSystemWindows="true">
         android:text="Editar Usuario"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/textView2"
+        android:id="@+id/txtTituloEditar"
         android:textAlignment="center"
         android:textStyle="normal|bold"
         android:textSize="18sp" />
@@ -76,23 +76,16 @@ android:fitsSystemWindows="true">
             android:hint="Repetir Contraseña"/>
     </android.support.design.widget.TextInputLayout>
 
-    <!-- Signup Button -->
+    <!-- Guardar Button -->
     <android.support.v7.widget.AppCompatButton
-        android:id="@+id/btn_signup"
+        android:id="@+id/btn_save"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:layout_marginBottom="24dp"
         android:padding="12dp"
-        android:text="Crear Cuenta"/>
+        android:text="Guardar Cambios"/>
 
-    <TextView android:id="@+id/link_login"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
-        android:text="Ya estas registrado? Entrar"
-        android:gravity="center"
-        android:textSize="16dip"/>
 
 </LinearLayout>
 </ScrollView>

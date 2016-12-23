@@ -94,6 +94,7 @@ public class MainActivity extends AppCompatActivity
         mSocket.on(Socket.EVENT_CONNECT_ERROR, onConnectError);
         mSocket.on(Socket.EVENT_CONNECT_TIMEOUT, onConnectError);
         mSocket.connect();//Devuelve el socket de la URL pasada, siempre obtiene el mismo Socket con Singleton
+        Log.w("conectarSokect()", "Ejecutado");
         //FIN SOCKETS ----------------------------------------------------------------
     }
 
@@ -151,25 +152,26 @@ public class MainActivity extends AppCompatActivity
     };
 
     protected void onStart() {
-        Log.w("onStart()","Ejecutado");
+        Log.w("onStart() Main","Ejecutado");
         super.onStart();
     }
 
     protected void onStop() {
 
-        Log.w("onStop()","Ejecutado");
+        Log.w("onStop() Main","Ejecutado");
         super.onStop();
     }
 
     @Override
     protected void onPause() {
-        Log.w("onPause()","Ejecutado");
+        Log.w("onPause() Main","Ejecutado");
         super.onPause();
     }
 
     @Override
     public void onResume() {
-        Log.w("onResume()","Ejecutado");
+        conectarSokect();
+        Log.w("onResume() Main","Ejecutado");
         super.onResume();
     }
 
@@ -177,7 +179,7 @@ public class MainActivity extends AppCompatActivity
     public void onDestroy()
     {
         desconectarSocket();
-        Log.w("onDestroy()","Ejecutado");
+        Log.w("onDestroy() Main","Ejecutado");
         super.onDestroy();
 
     }

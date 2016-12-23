@@ -83,13 +83,14 @@ public class LoginActivity extends AppCompatActivity
 
     public void login() {
         Log.d(TAG, "Login");
+        _loginButton.setEnabled(false);
 
         if (!validate()) {
             onLoginFailed();
             return;
         }
 
-        _loginButton.setEnabled(false);
+
 
         String email = _emailText.getText().toString();
         String password = _passwordText.getText().toString();
