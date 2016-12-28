@@ -1,11 +1,17 @@
 package infozonaorg.com.testnode;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -24,6 +30,11 @@ public class MainActivity extends AppCompatActivity
 {
     private Socket mSocket;
     private Boolean isConnected = true;
+
+    Snackbar snackbarConectado = null;
+    Snackbar snackbarDesconectado = null;
+    Snackbar snackbarFallo = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,8 +126,7 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void run() {
                     if(!isConnected) {
-                        Toast.makeText(getApplicationContext(),
-                                R.string.connect, Toast.LENGTH_SHORT).show();
+                        handleSnackBarConexion("conecto");
                         isConnected = true;
                     }
                 }
@@ -131,8 +141,11 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void run() {
                     isConnected = false;
-                    /*Toast.makeText(getApplicationContext(),
-                            R.string.disconnect, Toast.LENGTH_LONG).show();*/
+                    desactivarBotones();
+                    handleSnackBarConexion("desconecto");
+
+
+
                 }
             });
         }
@@ -144,8 +157,11 @@ public class MainActivity extends AppCompatActivity
             MainActivity.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(getApplicationContext(),
-                            R.string.error_connect, Toast.LENGTH_SHORT).show();
+                    desactivarBotones();
+                    handleSnackBarConexion("fallo");
+
+
+
                 }
             });
         }
@@ -182,6 +198,86 @@ public class MainActivity extends AppCompatActivity
         Log.w("onDestroy() Main","Ejecutado");
         super.onDestroy();
 
+    }
+
+    private void desactivarBotones()
+    {
+        Button btnInicio = (Button) findViewById(R.id.btnMapa);
+        btnInicio.setEnabled(false);
+
+        Button btnRegistro = (Button) findViewById(R.id.btnSignUp);
+        btnRegistro.setEnabled(false);
+
+        Button btnLogin = (Button) findViewById(R.id.btnLogin);
+        btnLogin.setEnabled(false);
+
+    }
+
+    private void handleSnackBarConexion(String evento)
+    {
+        switch (evento) {
+            case "fallo":
+                if(snackbarDesconectado != null)
+                {
+                    snackbarDesconectado.dismiss();
+                    snackbarDesconectado = null;
+                }
+                if(snackbarFallo == null) {
+                    snackbarFallo = Snackbar.make(findViewById(android.R.id.content), "Fallo al conectar", Snackbar.LENGTH_INDEFINITE);
+                    View sbView = snackbarFallo.getView();
+                    sbView.setBackgroundColor(Color.RED);
+                    TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+                    tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                    snackbarFallo.show();
+                }
+                break;
+            case "desconecto":
+                if(snackbarFallo != null)
+                {
+                    snackbarFallo.dismiss();
+                    snackbarFallo = null;
+                }
+                if(snackbarDesconectado == null) {
+                    snackbarDesconectado = Snackbar.make(findViewById(android.R.id.content), "Desconectado", Snackbar.LENGTH_INDEFINITE);
+                    View sbView = snackbarDesconectado.getView();
+                    sbView.setBackgroundColor(Color.RED);
+                    TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+                    tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                    snackbarDesconectado.show();
+                }
+                break;
+
+            case "conecto":
+                if(snackbarDesconectado != null)
+                {
+                    snackbarDesconectado.dismiss();
+                    snackbarDesconectado = null;
+                }
+
+                if(snackbarFallo != null)
+                {
+                    snackbarFallo.dismiss();
+                    snackbarFallo = null;
+                }
+
+                if(snackbarConectado == null) {
+                    snackbarConectado = Snackbar.make(findViewById(android.R.id.content),"Conectado", Snackbar.LENGTH_SHORT);
+                    View sbView = snackbarConectado.getView();
+                    sbView.setBackgroundColor(Color.GREEN);
+                    TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+                    tv.setTextColor(Color.BLACK);
+                    tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                    snackbarConectado.show();
+                }
+                snackbarConectado = null;
+                break;
+
+            default:
+                break;
+
+
+
+        }
     }
 }
 

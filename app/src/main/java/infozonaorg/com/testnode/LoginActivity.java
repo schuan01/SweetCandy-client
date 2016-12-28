@@ -1,7 +1,9 @@
 package infozonaorg.com.testnode;
 
 import android.app.ProgressDialog;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
@@ -39,6 +41,10 @@ public class LoginActivity extends AppCompatActivity
     private Socket mSocket;
     private Boolean isConnected = true;
     private Session session;
+    Snackbar snackbarConectado = null;
+    Snackbar snackbarDesconectado = null;
+    Snackbar snackbarFallo = null;
+
 
     @InjectView(R.id.input_email) EditText _emailText;
     @InjectView(R.id.input_password) EditText _passwordText;
@@ -230,8 +236,7 @@ public class LoginActivity extends AppCompatActivity
                 @Override
                 public void run() {
                     if(!isConnected) {
-                        Toast.makeText(getApplicationContext(),
-                                R.string.connect, Toast.LENGTH_LONG).show();
+                        handleSnackBarConexion("conecto");
                         isConnected = true;
                     }
                 }
@@ -245,9 +250,9 @@ public class LoginActivity extends AppCompatActivity
             LoginActivity.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    desactivarBotones();
                     isConnected = false;
-                    /*Toast.makeText(getApplicationContext(),
-                            R.string.disconnect, Toast.LENGTH_LONG).show();*/
+                    handleSnackBarConexion("desconecto");
                 }
             });
         }
@@ -259,12 +264,84 @@ public class LoginActivity extends AppCompatActivity
             LoginActivity.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(getApplicationContext(),
-                            R.string.error_connect, Toast.LENGTH_LONG).show();
+                    desactivarBotones();
+                    handleSnackBarConexion("fallo");
                 }
             });
         }
     };
 
+    private void desactivarBotones()
+    {
+        _loginButton.setEnabled(false);
+
+    }
+
+    private void handleSnackBarConexion(String evento)
+    {
+        switch (evento) {
+            case "fallo":
+                if(snackbarDesconectado != null)
+                {
+                    snackbarDesconectado.dismiss();
+                    snackbarDesconectado = null;
+                }
+                if(snackbarFallo == null) {
+                    snackbarFallo = Snackbar.make(findViewById(android.R.id.content), "Fallo al conectar", Snackbar.LENGTH_INDEFINITE);
+                    View sbView = snackbarFallo.getView();
+                    sbView.setBackgroundColor(Color.RED);
+                    TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+                    tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                    snackbarFallo.show();
+                }
+                break;
+            case "desconecto":
+                if(snackbarFallo != null)
+                {
+                    snackbarFallo.dismiss();
+                    snackbarFallo = null;
+                }
+                if(snackbarDesconectado == null) {
+                    snackbarDesconectado = Snackbar.make(findViewById(android.R.id.content), "Desconectado", Snackbar.LENGTH_INDEFINITE);
+                    View sbView = snackbarDesconectado.getView();
+                    sbView.setBackgroundColor(Color.RED);
+                    TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+                    tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                    snackbarDesconectado.show();
+                }
+                break;
+
+            case "conecto":
+                if(snackbarDesconectado != null)
+                {
+                    snackbarDesconectado.dismiss();
+                    snackbarDesconectado = null;
+                }
+
+                if(snackbarFallo != null)
+                {
+                    snackbarFallo.dismiss();
+                    snackbarFallo = null;
+                }
+
+                if(snackbarConectado == null) {
+                    snackbarConectado = Snackbar.make(findViewById(android.R.id.content),"Conectado", Snackbar.LENGTH_SHORT);
+                    View sbView = snackbarConectado.getView();
+                    sbView.setBackgroundColor(Color.GREEN);
+                    TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+                    tv.setTextColor(Color.BLACK);
+                    tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                    snackbarConectado.show();
+                }
+                snackbarConectado = null;
+                break;
+
+            default:
+                break;
+
+
+
+        }
+    }
 
 }

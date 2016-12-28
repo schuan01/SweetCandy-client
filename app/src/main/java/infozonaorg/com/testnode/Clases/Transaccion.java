@@ -1,5 +1,7 @@
 package infozonaorg.com.testnode.Clases;
 
+import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -112,7 +114,7 @@ public class Transaccion
 
             return jsonObject;
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.e("ERROR",e.getMessage());
             return null;
         }
 

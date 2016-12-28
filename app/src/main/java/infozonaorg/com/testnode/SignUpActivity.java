@@ -131,12 +131,13 @@ public class SignUpActivity extends AppCompatActivity
             informacion.put("costo", e.getCosto());
             informacion.put("latitud", e.getUbicacion().latitude);
             informacion.put("longitud", e.getUbicacion().longitude);
+            informacion.put("urlFoto",e.getUrlFoto());
             informacion.put("email",email);
             informacion.put("password", password);
 
-        } catch (JSONException ex) {
+        } catch (Exception ex) {
 
-            ex.printStackTrace();
+            Log.e("ERROR",ex.getMessage());
         }
 
         //Manda la info necesaria para agregar un nuevo empleado conectado al servidor

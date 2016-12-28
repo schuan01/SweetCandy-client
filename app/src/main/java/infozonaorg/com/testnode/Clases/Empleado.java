@@ -1,5 +1,7 @@
 package infozonaorg.com.testnode.Clases;
 
+import android.util.Log;
+
 import com.google.ads.mediation.EmptyNetworkExtras;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -88,7 +90,7 @@ public class Empleado extends Usuario {
         return jsonObject;
         } catch (JSONException e)
         {
-            e.printStackTrace();
+            Log.e("ERROR",e.getMessage());
             return null;
         }
     }

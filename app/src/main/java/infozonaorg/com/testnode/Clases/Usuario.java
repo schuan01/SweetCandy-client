@@ -2,6 +2,7 @@ package infozonaorg.com.testnode.Clases;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -160,7 +161,7 @@ public class Usuario
 
             return jsonObject;
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.e("ERROR",e.getMessage());
             return null;
         }
 
