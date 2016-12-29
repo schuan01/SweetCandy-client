@@ -41,9 +41,9 @@ public class LoginActivity extends AppCompatActivity
     private Socket mSocket;
     private Boolean isConnected = true;
     private Session session;
-    Snackbar snackbarConectado = null;
-    Snackbar snackbarDesconectado = null;
-    Snackbar snackbarFallo = null;
+    private Snackbar snackbarConectado = null;
+    private Snackbar snackbarDesconectado = null;
+    private Snackbar snackbarFallo = null;
 
 
     @InjectView(R.id.input_email) EditText _emailText;
@@ -237,6 +237,7 @@ public class LoginActivity extends AppCompatActivity
                 public void run() {
                     if(!isConnected) {
                         handleSnackBarConexion("conecto");
+                        activarBotones();
                         isConnected = true;
                     }
                 }
@@ -274,6 +275,12 @@ public class LoginActivity extends AppCompatActivity
     private void desactivarBotones()
     {
         _loginButton.setEnabled(false);
+
+    }
+
+    private void activarBotones()
+    {
+        _loginButton.setEnabled(true);
 
     }
 

@@ -31,9 +31,9 @@ public class MainActivity extends AppCompatActivity
     private Socket mSocket;
     private Boolean isConnected = true;
 
-    Snackbar snackbarConectado = null;
-    Snackbar snackbarDesconectado = null;
-    Snackbar snackbarFallo = null;
+    private Snackbar snackbarConectado = null;
+    private Snackbar snackbarDesconectado = null;
+    private Snackbar snackbarFallo = null;
 
 
     @Override
@@ -127,8 +127,10 @@ public class MainActivity extends AppCompatActivity
                 public void run() {
                     if(!isConnected) {
                         handleSnackBarConexion("conecto");
+                        activarBotones();
                         isConnected = true;
                     }
+
                 }
             });
         }
@@ -141,7 +143,6 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void run() {
                     isConnected = false;
-                    desactivarBotones();
                     handleSnackBarConexion("desconecto");
 
 
@@ -157,7 +158,6 @@ public class MainActivity extends AppCompatActivity
             MainActivity.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    desactivarBotones();
                     handleSnackBarConexion("fallo");
 
 
@@ -213,72 +213,85 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    private void handleSnackBarConexion(String evento)
+    private void activarBotones()
     {
-        switch (evento) {
-            case "fallo":
-                if(snackbarDesconectado != null)
-                {
-                    snackbarDesconectado.dismiss();
-                    snackbarDesconectado = null;
-                }
-                if(snackbarFallo == null) {
-                    snackbarFallo = Snackbar.make(findViewById(android.R.id.content), "Fallo al conectar", Snackbar.LENGTH_INDEFINITE);
-                    View sbView = snackbarFallo.getView();
-                    sbView.setBackgroundColor(Color.RED);
-                    TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
-                    tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-                    snackbarFallo.show();
-                }
-                break;
-            case "desconecto":
-                if(snackbarFallo != null)
-                {
-                    snackbarFallo.dismiss();
-                    snackbarFallo = null;
-                }
-                if(snackbarDesconectado == null) {
-                    snackbarDesconectado = Snackbar.make(findViewById(android.R.id.content), "Desconectado", Snackbar.LENGTH_INDEFINITE);
-                    View sbView = snackbarDesconectado.getView();
-                    sbView.setBackgroundColor(Color.RED);
-                    TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
-                    tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-                    snackbarDesconectado.show();
-                }
-                break;
+        Button btnInicio = (Button) findViewById(R.id.btnMapa);
+        btnInicio.setEnabled(true);
 
-            case "conecto":
-                if(snackbarDesconectado != null)
-                {
-                    snackbarDesconectado.dismiss();
-                    snackbarDesconectado = null;
-                }
+        Button btnRegistro = (Button) findViewById(R.id.btnSignUp);
+        btnRegistro.setEnabled(true);
 
-                if(snackbarFallo != null)
-                {
-                    snackbarFallo.dismiss();
-                    snackbarFallo = null;
-                }
+        Button btnLogin = (Button) findViewById(R.id.btnLogin);
+        btnLogin.setEnabled(true);
 
-                if(snackbarConectado == null) {
-                    snackbarConectado = Snackbar.make(findViewById(android.R.id.content),"Conectado", Snackbar.LENGTH_SHORT);
-                    View sbView = snackbarConectado.getView();
-                    sbView.setBackgroundColor(Color.GREEN);
-                    TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
-                    tv.setTextColor(Color.BLACK);
-                    tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-                    snackbarConectado.show();
-                }
-                snackbarConectado = null;
-                break;
-
-            default:
-                break;
-
-
-
-        }
     }
+
+    private void handleSnackBarConexion(String evento) {
+            switch (evento) {
+                case "fallo":
+                    if (snackbarDesconectado != null) {
+                        snackbarDesconectado.dismiss();
+                        snackbarDesconectado = null;
+                    }
+                    if (snackbarFallo == null) {
+                        snackbarFallo = Snackbar.make(findViewById(android.R.id.content), "Fallo al conectar", Snackbar.LENGTH_INDEFINITE);
+                        View sbView = snackbarFallo.getView();
+                        sbView.setBackgroundColor(Color.RED);
+                        TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+                        tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                        snackbarFallo.show();
+
+                    }
+                    desactivarBotones();
+                    break;
+                case "desconecto":
+                    if (snackbarFallo != null) {
+                        snackbarFallo.dismiss();
+                        snackbarFallo = null;
+                    }
+                    if (snackbarDesconectado == null) {
+                        snackbarDesconectado = Snackbar.make(findViewById(android.R.id.content), "Desconectado", Snackbar.LENGTH_INDEFINITE);
+                        View sbView = snackbarDesconectado.getView();
+                        sbView.setBackgroundColor(Color.RED);
+                        TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+                        tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                        snackbarDesconectado.show();
+
+                    }
+                    desactivarBotones();
+                    break;
+
+                case "conecto":
+                    if (snackbarDesconectado != null) {
+                        snackbarDesconectado.dismiss();
+                        snackbarDesconectado = null;
+                    }
+
+                    if (snackbarFallo != null) {
+                        snackbarFallo.dismiss();
+                        snackbarFallo = null;
+                    }
+
+                    if (snackbarConectado == null) {
+                        snackbarConectado = Snackbar.make(findViewById(android.R.id.content), "Conectado", Snackbar.LENGTH_SHORT);
+                        View sbView = snackbarConectado.getView();
+                        sbView.setBackgroundColor(Color.GREEN);
+                        TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+                        tv.setTextColor(Color.BLACK);
+                        tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                        snackbarConectado.show();
+
+                    }
+                    snackbarConectado = null;
+                    break;
+
+                default:
+                    break;
+
+
+            }
+        }
+
 }
 
 

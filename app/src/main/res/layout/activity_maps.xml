@@ -20,22 +20,31 @@
     android:padding="10dp"
     android:id="@+id/btnBuscarDisponible" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center|bottom"
+        android:text="Finalizar"
+        android:visibility="gone"
+        android:padding="10dp"
+        android:id="@+id/btnFinalizarTransaccion" />
+
     <com.dd.processbutton.iml.ActionProcessButton
         android:id="@+id/btnCancelarBusqueda"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center|bottom"
         android:padding="10dp"
-        android:text="Cancelar"
+        android:text="Cancelar Busqueda"
         android:visibility="gone"
         android:textColor="@android:color/white"
         android:textSize="18sp"
         custom:pb_colorComplete="@color/green_complete"
-        custom:pb_colorNormal="@color/blue_normal"
-        custom:pb_colorPressed="@color/blue_pressed"
-        custom:pb_colorProgress="@color/purple_progress"
+        custom:pb_colorNormal="@color/rojoNormal"
+        custom:pb_colorPressed="@color/rojoPresionado"
+        custom:pb_colorProgress="@color/rojoNormal"
         custom:pb_textComplete="Cancelado"
-        custom:pb_textProgress="Cancelando..."
+        custom:pb_textProgress="Cancelar Busqueda"
         custom:pb_textError="Error"
         custom:pb_colorError="@color/red_error" />
 
