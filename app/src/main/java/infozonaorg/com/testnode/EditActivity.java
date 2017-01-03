@@ -13,36 +13,46 @@ import android.widget.Toast;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import infozonaorg.com.testnode.Clases.Session;
 import infozonaorg.com.testnode.Complementos.InputFilterMinMax;
 
 public class EditActivity extends AppCompatActivity {
 
     private static final String TAG = "EditActivity";
 
+    @InjectView(R.id.input_passwordanterior) EditText _passwordAnterior;
     @InjectView(R.id.input_password) EditText _passwordText;
     @InjectView(R.id.input_passwordConfirm) EditText _passwordConfirmText;
     @InjectView(R.id.input_edad) EditText _edadNumber;
     @InjectView(R.id.txtTituloEditar) TextView _tituloEditar;
     @InjectView(R.id.btn_save) Button _btnGuardar;
+    private Session session;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit);
-
         ButterKnife.inject(this);
-        _tituloEditar.setText(_tituloEditar.getText() + "Usuario");
-        _edadNumber.setFilters(new InputFilter[]{ new InputFilterMinMax("18", "100")});
 
-        _btnGuardar.setOnClickListener(new View.OnClickListener() {
+        session = new Session(EditActivity.this);
+        if(session.getTipoUsuario().equals("Empleado")) {
 
-            @Override
-            public void onClick(View v) {
-                guardarCambios();
-            }
+            _tituloEditar.setText(_tituloEditar.getText() + " " + session.getUsuario());
+            int test = session.getEdad();
+            _edadNumber.setText(""+session.getEdad());
+            _edadNumber.setFilters(new InputFilter[]{new InputFilterMinMax("18", "100")});
+
+            _btnGuardar.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    guardarCambios();
+                }
 
 
-        });
+            });
+        }
     }
 
     private void guardarCambios()

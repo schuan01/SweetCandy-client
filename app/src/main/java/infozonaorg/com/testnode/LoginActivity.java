@@ -13,13 +13,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
-import org.json.JSONArray;
+
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -29,7 +26,7 @@ import java.util.ArrayList;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import infozonaorg.com.testnode.Clases.Empleado;
+
 import infozonaorg.com.testnode.Clases.Session;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -55,6 +52,11 @@ public class LoginActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        if(session != null)
+        {
+            onLoginSuccess();//Cierra la actividad y va directo al mapa porque ya esta la session creada
+        }
 
         //SOCKETS ----------------------------------------------------------------
         TestApplication app = (TestApplication) getApplication();
@@ -122,7 +124,7 @@ public class LoginActivity extends AppCompatActivity
 
         } catch (JSONException e) {
 
-            e.printStackTrace();
+            Log.e("Error",e.getMessage());
         }
 
         mSocket.emit("loginempleado", informacion);
@@ -150,6 +152,7 @@ public class LoginActivity extends AppCompatActivity
                             session.setEmail(usuario.getString("email"));
                             session.setDescripcion(usuario.getString("descripcion"));
                             session.setEdad(usuario.getInt("edad"));
+                            session.setTipoUsuario("Empleado");
                             onLoginSuccess();
                         }
                         else
@@ -191,7 +194,12 @@ public class LoginActivity extends AppCompatActivity
     }
 
     public void onLoginFailed() {
-        Toast.makeText(getBaseContext(), "Error al ingresar", Toast.LENGTH_LONG).show();
+        Snackbar fallo = Snackbar.make(findViewById(android.R.id.content), "Fallo al ingresar", Snackbar.LENGTH_INDEFINITE);
+        View sbView = fallo.getView();
+        sbView.setBackgroundColor(Color.RED);
+        TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+        tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        fallo.show();
 
         _loginButton.setEnabled(true);
     }
@@ -223,6 +231,7 @@ public class LoginActivity extends AppCompatActivity
     public void onDestroy()
     {
         super.onDestroy();
+
 
     }
 
@@ -350,5 +359,6 @@ public class LoginActivity extends AppCompatActivity
 
         }
     }
+
 
 }

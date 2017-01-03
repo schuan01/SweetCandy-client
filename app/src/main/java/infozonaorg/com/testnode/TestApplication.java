@@ -1,6 +1,8 @@
 package infozonaorg.com.testnode;
 
 import android.app.Application;
+import android.content.Context;
+
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -17,6 +19,7 @@ public class TestApplication extends Application {
 
     static List<Empleado> lstEmpleadosConectados = new ArrayList<>();
     static List<Cliente> lstClientesConectoads = new ArrayList<>();
+
 
 
     private Socket mSocket;

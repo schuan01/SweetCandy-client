@@ -2,7 +2,9 @@ package infozonaorg.com.testnode;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
@@ -12,9 +14,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.model.LatLng;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -41,6 +41,10 @@ public class SignUpActivity extends AppCompatActivity
     private Socket mSocket;
     private Boolean isConnected = true;
     private Boolean creadoCorrectamente = false;
+
+    private Snackbar snackbarConectado = null;
+    private Snackbar snackbarDesconectado = null;
+    private Snackbar snackbarFallo = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,17 +103,15 @@ public class SignUpActivity extends AppCompatActivity
         String usuario = _usuarioText.getText().toString();
         String email = _emailText.getText().toString();
         String password = _passwordText.getText().toString();
-        String passwordConfirm = _passwordConfirmText.getText().toString();
 
-        usuario.toLowerCase();
-        email.toLowerCase();
-        password.toLowerCase();
+        usuario = usuario.toLowerCase();
+        email = email.toLowerCase();
+        password = password.toLowerCase();
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             password += Constantes.TEXTOFIJO;
             byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
-            String base64 = Base64.encodeToString(hash, Base64.DEFAULT);
-            password = base64;
+            password = Base64.encodeToString(hash, Base64.DEFAULT);
         }
         catch (Exception ex)
         {
@@ -252,7 +254,6 @@ public class SignUpActivity extends AppCompatActivity
                     {
                         Log.e("Error", e.getMessage());
                         progressDialog.dismiss();
-                        return;
                     }
                 }
             });
@@ -268,8 +269,8 @@ public class SignUpActivity extends AppCompatActivity
                 @Override
                 public void run() {
                     if(!isConnected) {
-                        Toast.makeText(getApplicationContext(),
-                                R.string.connect, Toast.LENGTH_LONG).show();
+                        handleSnackBarConexion("conecto");
+                        activarBotones();
                         isConnected = true;
                     }
                 }
@@ -283,9 +284,9 @@ public class SignUpActivity extends AppCompatActivity
             SignUpActivity.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    desactivarBotones();
                     isConnected = false;
-                    Toast.makeText(getApplicationContext(),
-                            R.string.disconnect, Toast.LENGTH_LONG).show();
+                    handleSnackBarConexion("desconecto");
                 }
             });
         }
@@ -297,11 +298,89 @@ public class SignUpActivity extends AppCompatActivity
             SignUpActivity.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(getApplicationContext(),
-                            R.string.error_connect, Toast.LENGTH_LONG).show();
+                    desactivarBotones();
+                    handleSnackBarConexion("fallo");
                 }
             });
         }
     };
+
+    private void desactivarBotones()
+    {
+        _signupButton.setEnabled(false);
+
+    }
+
+    private void activarBotones()
+    {
+        _signupButton.setEnabled(true);
+
+    }
+    private void handleSnackBarConexion(String evento)
+    {
+        switch (evento) {
+            case "fallo":
+                if(snackbarDesconectado != null)
+                {
+                    snackbarDesconectado.dismiss();
+                    snackbarDesconectado = null;
+                }
+                if(snackbarFallo == null) {
+                    snackbarFallo = Snackbar.make(findViewById(android.R.id.content), "Fallo al conectar", Snackbar.LENGTH_INDEFINITE);
+                    View sbView = snackbarFallo.getView();
+                    sbView.setBackgroundColor(Color.RED);
+                    TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+                    tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                    snackbarFallo.show();
+                }
+                break;
+            case "desconecto":
+                if(snackbarFallo != null)
+                {
+                    snackbarFallo.dismiss();
+                    snackbarFallo = null;
+                }
+                if(snackbarDesconectado == null) {
+                    snackbarDesconectado = Snackbar.make(findViewById(android.R.id.content), "Desconectado", Snackbar.LENGTH_INDEFINITE);
+                    View sbView = snackbarDesconectado.getView();
+                    sbView.setBackgroundColor(Color.RED);
+                    TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+                    tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                    snackbarDesconectado.show();
+                }
+                break;
+
+            case "conecto":
+                if(snackbarDesconectado != null)
+                {
+                    snackbarDesconectado.dismiss();
+                    snackbarDesconectado = null;
+                }
+
+                if(snackbarFallo != null)
+                {
+                    snackbarFallo.dismiss();
+                    snackbarFallo = null;
+                }
+
+                if(snackbarConectado == null) {
+                    snackbarConectado = Snackbar.make(findViewById(android.R.id.content),"Conectado", Snackbar.LENGTH_SHORT);
+                    View sbView = snackbarConectado.getView();
+                    sbView.setBackgroundColor(Color.GREEN);
+                    TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+                    tv.setTextColor(Color.BLACK);
+                    tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                    snackbarConectado.show();
+                }
+                snackbarConectado = null;
+                break;
+
+            default:
+                break;
+
+
+
+        }
+    }
 
 }

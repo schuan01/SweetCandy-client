@@ -1,12 +1,14 @@
 package infozonaorg.com.testnode;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.net.Uri;
 import android.os.CountDownTimer;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -16,9 +18,9 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,7 +52,6 @@ import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
-import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 
@@ -96,9 +97,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Snackbar snackbarConectado = null;
     private Snackbar snackbarDesconectado = null;
     private Snackbar snackbarFallo = null;
+
     @InjectView(R.id.btnBuscarDisponible) Button btnBuscarDisponible;
     @InjectView(R.id.btnFinalizarTransaccion) Button btnFinalizarTransaccion;
     @InjectView(R.id.btnCancelarBusqueda) ActionProcessButton btnCancelarBusqueda;
+    @InjectView(R.id.btnToggle)     ImageButton btnToggle;
 
 
     //AGREGAR MARCADOR NUEVO
@@ -132,6 +135,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     boolean transaccionActiva = false;
 
     //Para el drawer
+    //save our header or result
+    private AccountHeader headerResult = null;
     private Drawer result = null;
 
     //Buscando empleado disponible
@@ -143,75 +148,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //Cliente solicitud
     Cliente clienteSolicitud = null;
 
+    //Procesando
+    //ProgressDialog progressDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_maps);
         setTitle("App Test");
-        Log.w("OnCreate Maps","Ejecutado!");
-
-        //BUTTER KNIFE
-        ButterKnife.inject(this);
-
-        //-------------DRAWER---------------------------
-        new DrawerBuilder().withActivity(this).build();
-
-        //if you want to update the items at a later time it is recommended to keep it in a variable
-        PrimaryDrawerItem item1 = new PrimaryDrawerItem().withIdentifier(1).withName("Inicio");
-        SecondaryDrawerItem item2 = new SecondaryDrawerItem().withIdentifier(2).withName("Configuracion");
-        final IProfile profile3 = new ProfileDrawerItem().withName("Juan Volpe").withEmail("schuanv@gmail.com").withIcon(R.drawable.common_signin_btn_text_pressed_light).withIdentifier(102);
-
-
-        // Create the AccountHeader
-        AccountHeader headerResult = new AccountHeaderBuilder()
-                .withActivity(this)
-                .withTranslucentStatusBar(true)
-                .withSavedInstance(savedInstanceState)
-                .addProfiles(
-                        profile3
-                )
-                .build();
-
-        result = new DrawerBuilder()
-                .withActivity(this)
-                .withHasStableIds(true)
-                .withAccountHeader(headerResult) //set the AccountHeader we created earlier for the header
-                .addDrawerItems(
-                        new PrimaryDrawerItem().withName("Test1").withDescription("Desc1").withIcon(FontAwesome.Icon.faw_amazon).withIdentifier(1).withSelectable(false)) // add the items we want to use with our Drawer
-                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
-                    @Override
-                    public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-                        //check if the drawerItem is set.
-                        //there are different reasons for the drawerItem to be null
-                        //--> click on the header
-                        //--> click on the footer
-                        //those items don't contain a drawerItem
-
-                        if (drawerItem != null) {
-                            Intent intent = null;
-                            if (drawerItem.getIdentifier() == 1) {
-                                intent = new Intent(MapsActivity.this, MainActivity.class);
-
-                                MapsActivity.this.startActivity(intent);
-                            }
-
-
-                        }
-                        return false;
-                    }
-                })
-                .withSavedInstance(savedInstanceState)
-                .withShowDrawerOnFirstLaunch(true)
-                .build();
-
-        //only set the active selection or active profile if we do not recreate the activity
-        if (savedInstanceState == null) {
-            //set the active profile
-            headerResult.setActiveProfile(profile3);
-        }
-
-        //------------ FIN DRAWER ------------------------
-
+        Log.w("OnCreate Maps", "Ejecutado!");
 
         buildGoogleApiClient();
         mGoogleApiClient.connect();
@@ -231,6 +177,117 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mSocket.on("transaccionfinalizada", onTransaccionIniciada);//comieza la transaccion
         mSocket.on("clienteanonimoconectado", onClienteAnonimoConectado);//cuando conecta un cliente
         mSocket.on("transaccionfinalizada", onTransaccionFinalizada);//cuando finaliza la transaccion
+
+        //LO QUE VIENE DEL MAIN ACTIVITY
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            tipoUsuario = extras.getString("tipoBoton");
+        }
+
+        if(tipoUsuario != null && tipoUsuario.equals("Empleado"))
+        {
+            session = new Session(MapsActivity.this);
+            empleadoConectado.setId(session.getId());
+            empleadoConectado.setUsuario(session.getUsuario());
+            empleadoConectado.setEmail(session.getEmail());
+            empleadoConectado.setDescripcion(session.getDescripcion());
+
+
+        }
+
+        if(tipoUsuario != null && tipoUsuario.equals("Cliente"))
+        {
+            clienteConectado.setUsuario("Cliente Anonimo");
+            clienteConectado.setOnline(true);
+            clienteConectado.setEdad(20);
+            mSocket.emit("conectarclienteanonimo",clienteConectado.toJSON());
+
+        }
+
+        //BUTTER KNIFE
+        ButterKnife.inject(this);
+
+        //-------------DRAWER---------------------------
+        //Remove line to test RTL support
+        //getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+
+        // Handle Toolbar
+
+
+        // Create a few sample profile
+        // NOTE you have to define the loader logic too. See the CustomApplication for more details
+
+
+        IProfile profile3 = null;
+        if(tipoUsuario.equals("Empleado"))
+        {
+            profile3 = new ProfileDrawerItem().withName(empleadoConectado.getUsuario()).withEmail(empleadoConectado.getEmail()).withIcon(Uri.parse("https://s-media-cache-ak0.pinimg.com/736x/4d/b2/4b/4db24b16ab66d4829fad06aa05c866b5.jpg")).withIdentifier(102);
+        }
+        else
+        {
+            profile3 = new ProfileDrawerItem().withName("Anonimo").withEmail("").withIcon(Uri.parse("https://s-media-cache-ak0.pinimg.com/736x/4d/b2/4b/4db24b16ab66d4829fad06aa05c866b5.jpg")).withIdentifier(102);
+        }
+
+        // Create the AccountHeader
+        headerResult = new AccountHeaderBuilder()
+                .withActivity(this)
+                .withTranslucentStatusBar(true)
+                .withHeaderBackground(R.drawable.material_background3)
+                //.addProfiles( profile3)
+                .withSavedInstance(savedInstanceState)
+                .build();
+
+        //Create the drawer
+        result = new DrawerBuilder()
+                .withActionBarDrawerToggleAnimated(true)
+                .withActivity(this)
+                .withHasStableIds(true)
+                .withAccountHeader(headerResult) //set the AccountHeader we created earlier for the header
+                .addDrawerItems(
+                        new PrimaryDrawerItem().withName("Configuracion").withDescription("Edita los datos de la cuenta").withIcon(FontAwesome.Icon.faw_cog).withIdentifier(1).withSelectable(false)
+
+                ) // add the items we want to use with our Drawer
+                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
+                    @Override
+                    public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
+                        //check if the drawerItem is set.
+                        //there are different reasons for the drawerItem to be null
+                        //--> click on the header
+                        //--> click on the footer
+                        //those items don't contain a drawerItem
+
+                        if (drawerItem != null) {
+                            Intent intent = null;
+                            if (drawerItem.getIdentifier() == 1) {//Configuracion
+                                intent = new Intent(MapsActivity.this, EditActivity.class);
+                            }
+
+                            if (intent != null) {
+                                MapsActivity.this.startActivity(intent);
+                            }
+
+
+                        }
+                        return false;
+                    }
+
+                })
+                .withSavedInstance(savedInstanceState)
+                .withShowDrawerOnFirstLaunch(true)
+                .build();
+
+        //only set the active selection or active profile if we do not recreate the activity
+        if (savedInstanceState == null) {
+
+            //set the active profile
+            headerResult.setActiveProfile(profile3);
+        }
+
+
+        //------------ FIN DRAWER ------------------------
+
+
+
 
 
         //BOTON BUSCAR DISPONIBLE
@@ -266,6 +323,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             {
 
                 cancelarBusqueda();
+
+            }
+        });
+
+        //BOTON DRAWER TOGGLE
+        btnToggle.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View arg0)
+            {
+
+                if(result != null && !result.isDrawerOpen())
+                    result.openDrawer();
 
             }
         });
@@ -323,35 +393,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // set progress > 0 to start progress indicator animation
         //btnCancelarBusqueda.setProgress(1);
 
-
-
-
-        //LO QUE VIENE DEL MAIN ACTIVITY
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            tipoUsuario = extras.getString("tipoBoton");
-        }
-
-        if(tipoUsuario != null && tipoUsuario.equals("Empleado"))
-        {
-            session = new Session(MapsActivity.this);
-            empleadoConectado.setId(session.getId());
-            empleadoConectado.setUsuario(session.getUsuario());
-            empleadoConectado.setEmail(session.getEmail());
-            empleadoConectado.setDescripcion(session.getDescripcion());
-
-        }
-
-        if(tipoUsuario != null && tipoUsuario.equals("Cliente"))
-        {
-            clienteConectado.setUsuario("Cliente Anonimo");
-            clienteConectado.setOnline(true);
-            clienteConectado.setEdad(20);
-            mSocket.emit("conectarclienteanonimo",clienteConectado.toJSON());
-
-        }
-
-
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -359,7 +400,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     }
-
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -395,17 +435,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         else
         {
+            //Esto pone el marcador del punto azul y el boton de centrar en el mapa
             mMap.setMyLocationEnabled(true);
 
         }
 
-        if(mLastLocation == null)
-        {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(-34.893713,-56.171671),5));//Montevideo
-        }
-        else {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude()),5));//Mi ubicacion
-        }
+
 
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(mLocationRequest);
@@ -547,7 +582,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                                 } catch (JSONException e) {
 
-                                                    e.printStackTrace();
+                                                    Log.e("Error",e.getMessage());
                                                 }
 
                                                 JSONObject empleado = empleadoConectado.toJSON();
@@ -557,7 +592,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                                 } catch (JSONException e) {
 
-                                                    e.printStackTrace();
+                                                    Log.e("Error",e.getMessage());
                                                 }
 
                                                 JSONObject transaccion = null;
@@ -573,7 +608,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                                 } catch (JSONException e) {
 
-                                                    e.printStackTrace();
+                                                    Log.e("Error",e.getMessage());
                                                 }
 
                                                 JSONArray jsonArray = new JSONArray();
@@ -720,8 +755,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         btnCancelarBusqueda.setVisibility(View.GONE);
                         btnCancelarBusqueda.setProgress(0);
                         btnBuscarDisponible.setVisibility(View.VISIBLE);
-                        mSocket.on("empleadoscercanos",onCercanos);//Escuchar hasta que el empleado acepte
-                        mSocket.on("solicitudcliente",onSolicitudCliente);//Dejo de escuchar hasta que el empleado acepte
+                        mSocket.on("empleadoscercanos",onCercanos);//Escucho los empleados cercanos
+                        mSocket.on("solicitudcliente",onSolicitudCliente);//Vuelvo a escuchar
                         dibujarTransaccion();
 
 
@@ -833,7 +868,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             } catch (Exception e) {
 
-                e.printStackTrace();
+                Log.e("Error",e.getMessage());
             }
 
             mSocket.emit("desconectarusuario", informacion);
@@ -850,7 +885,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             } catch (Exception e) {
 
-                e.printStackTrace();
+                Log.e("Error",e.getMessage());
             }
 
             mSocket.emit("desconectarclienteanonimo", informacion);
@@ -909,8 +944,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mGoogleApiClient);
         if (mLastLocation != null)
         {
+
+            //Cuando conecta, me manda a la ubicacion
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude()),15.0f));//Mi ubicacion
+
+
             if(tipoUsuario.equals("Cliente"))
             {
+                //TODO
+                //Borrar el marcador YO ya que voy a usar el marcador por defecto del mapa(punto azul)
+
                 marcadorYo = mMap.addMarker(new MarkerOptions().position(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()))
                         .title(clienteConectado.getUsuario())
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
@@ -925,7 +968,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 } catch (JSONException e) {
 
-                    e.printStackTrace();
+                    Log.e("Error",e.getMessage());
                 }
 
 
@@ -952,7 +995,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 } catch (Exception e) {
 
-                    e.printStackTrace();
+                    Log.e("Error",e.getMessage());
                 }
 
                     //Manda la info necesaria del empleado en cuestion
@@ -964,6 +1007,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.i("LONGITUD onConnected",String.valueOf(mLastLocation.getLongitude()));
 
 
+        }
+        else
+        {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(-34.893713,-56.171671),15.0f));//Montevideo
         }
 
         if (mRequestingLocationUpdates) {
@@ -1001,7 +1048,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 } catch (JSONException e) {
 
-                    e.printStackTrace();
+                    Log.e("Error",e.getMessage());
                 }
 
                 //Manda la info necesaria para saber cercanos en el servidor
@@ -1032,7 +1079,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 } catch (Exception e) {
 
-                    e.printStackTrace();
+                    Log.e("Error",e.getMessage());
                 }
 
 
@@ -1053,8 +1100,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void dibujarTransaccion()
     {
-        mMap.clear();
+
         if(transaccionActiva && transaccionActual != null) {
+            mMap.clear();
 
             Marker clienteT = mMap.addMarker(new MarkerOptions().position(transaccionActual.getClienteTransaccion().getUbicacion()).title(transaccionActual.getClienteTransaccion().getUsuario())
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
@@ -1084,7 +1132,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             } catch (Exception e) {
 
-                e.printStackTrace();
+                Log.e("Error",e.getMessage());
             }
 
 
@@ -1110,7 +1158,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             } catch (Exception e) {
 
-                e.printStackTrace();
+                Log.e("Error",e.getMessage());
             }
 
 
@@ -1127,7 +1175,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             } catch (Exception e) {
 
-                e.printStackTrace();
+                Log.e("Error",e.getMessage());
             }
 
             JSONArray jsonArray = new JSONArray();
@@ -1172,6 +1220,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     mGoogleApiClient, mLocationRequest, this);
         }
     }
+
+
 
     public void onSaveInstanceState(Bundle savedInstanceState) {
         savedInstanceState.putBoolean(REQUESTING_LOCATION_UPDATES_KEY,

@@ -62,6 +62,15 @@ public class Session
         return descrip;
     }
 
+    public void setTipoUsuario(String tipo) {
+        prefs.edit().putString("tipousuario", tipo).apply();
+    }
+
+    public String getTipoUsuario() {
+        String tipo = prefs.getString("tipousuario","");
+        return tipo;
+    }
+
     public void clearAll()
     {
         prefs.edit().clear().commit();

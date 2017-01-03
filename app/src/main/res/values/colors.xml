@@ -6,4 +6,7 @@
     <color name="colorRojoSweet">#c2040e</color>
     <color name="rojoNormal">#eb0808</color>
     <color name="rojoPresionado">#ffff4444</color>
+    <color name="textColorPrimary">#FFFFFF</color>
+    <color name="windowBackground">#FFFFFF</color>
+    <color name="navigationBarColor">#000000</color>
 </resources>

@@ -29,6 +29,14 @@
         android:padding="10dp"
         android:id="@+id/btnFinalizarTransaccion" />
 
+
+    <ImageButton android:id="@+id/btnToggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left|top"
+        android:src="@drawable/ic_toggle"
+        android:background="@null"></ImageButton>
+
     <com.dd.processbutton.iml.ActionProcessButton
         android:id="@+id/btnCancelarBusqueda"
         android:layout_width="wrap_content"

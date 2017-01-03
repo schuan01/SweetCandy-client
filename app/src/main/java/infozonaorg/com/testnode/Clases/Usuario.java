@@ -126,7 +126,7 @@ public class Usuario
         }
         catch (JSONException e)
         {
-            e.printStackTrace();
+            Log.e("Error",e.getMessage());
         }
 
     }

@@ -16,7 +16,10 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 
+
 import infozonaorg.com.testnode.Clases.Empleado;
+import infozonaorg.com.testnode.Clases.Session;
+import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
@@ -34,14 +37,21 @@ public class MainActivity extends AppCompatActivity
     private Snackbar snackbarConectado = null;
     private Snackbar snackbarDesconectado = null;
     private Snackbar snackbarFallo = null;
+    private Session session;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         try
         {
+            /*//Borro la session si hay
+            if(session != null) {
+                session.clearAll();
+            }*/
+
             //Conectamos el socket, el unico que conecta el socket es este
             //Ademas seria el unico que desconectaria el socket entero
             conectarSokect();
@@ -56,6 +66,8 @@ public class MainActivity extends AppCompatActivity
 
                     Intent about = new Intent(MainActivity.this, MapsActivity.class);
                     about.putExtra("tipoBoton","Cliente");
+                    session = new Session(MainActivity.this);
+                    session.setTipoUsuario("Cliente");
                     startActivity(about);
 
                 }
@@ -104,6 +116,7 @@ public class MainActivity extends AppCompatActivity
         mSocket.on(Socket.EVENT_DISCONNECT, onDisconnect);
         mSocket.on(Socket.EVENT_CONNECT_ERROR, onConnectError);
         mSocket.on(Socket.EVENT_CONNECT_TIMEOUT, onConnectError);
+
         mSocket.connect();//Devuelve el socket de la URL pasada, siempre obtiene el mismo Socket con Singleton
         Log.w("conectarSokect()", "Ejecutado");
         //FIN SOCKETS ----------------------------------------------------------------

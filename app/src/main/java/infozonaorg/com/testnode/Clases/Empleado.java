@@ -1,5 +1,7 @@
 package infozonaorg.com.testnode.Clases;
 
+import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.util.Log;
 
 import com.google.ads.mediation.EmptyNetworkExtras;
@@ -7,6 +9,9 @@ import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by jvolpe on 30/11/2016.
@@ -17,6 +22,15 @@ public class Empleado extends Usuario {
     private float rating;
     private String descripcion;
     private float costo;
+    private ArrayList<Drawable> fotos;//DEVUELVE LOS IDENTIFICADORES DE CADA DRAWABLE
+
+    public ArrayList<Drawable> getFotos() {
+        return fotos;
+    }
+
+    public void setFotos(ArrayList<Drawable> fotos) {
+        this.fotos = fotos;
+    }
 
     public float getRating() {
         return rating;
@@ -45,12 +59,13 @@ public class Empleado extends Usuario {
 
 
 
-    public Empleado(int id,String usuario, String urlFoto, LatLng ubicacion, int edad, Boolean isOnline, float rating, String descripcion, float costo, String email, String password) {
+    public Empleado(int id,String usuario, String urlFoto, LatLng ubicacion, int edad, Boolean isOnline, float rating, String descripcion, float costo, String email, String password, ArrayList<Drawable> imagenes) {
         super(id,usuario, urlFoto, ubicacion, edad,isOnline,email,password);
 
         setRating(rating);
         setDescripcion(descripcion);
         setCosto(costo);
+        setFotos(imagenes);
     }
 
     public Empleado(JSONObject obj)
@@ -64,7 +79,7 @@ public class Empleado extends Usuario {
 
         } catch (JSONException e)
         {
-            e.printStackTrace();
+            Log.e("Error",e.getMessage());
         }
     }
 
@@ -74,6 +89,7 @@ public class Empleado extends Usuario {
         setRating(0.0f);
         setDescripcion("Default");
         setCosto(0);
+        setFotos(new ArrayList<Drawable>());
 
     }
 
