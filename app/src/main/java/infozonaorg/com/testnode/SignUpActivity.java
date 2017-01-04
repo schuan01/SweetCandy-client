@@ -21,8 +21,8 @@ import org.json.JSONObject;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import infozonaorg.com.testnode.Clases.Empleado;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -31,12 +31,12 @@ public class SignUpActivity extends AppCompatActivity
 {
     private static final String TAG = "SignUpActivity";
 
-    @InjectView(R.id.input_usuario) EditText _usuarioText;
-    @InjectView(R.id.input_email) EditText _emailText;
-    @InjectView(R.id.input_password) EditText _passwordText;
-    @InjectView(R.id.input_passwordConfirm) EditText _passwordConfirmText;
-    @InjectView(R.id.btn_signup) Button _signupButton;
-    @InjectView(R.id.link_login) TextView _loginLink;
+    @BindView(R.id.input_usuario) EditText _usuarioText;
+    @BindView(R.id.input_email) EditText _emailText;
+    @BindView(R.id.input_password) EditText _passwordText;
+    @BindView(R.id.input_passwordConfirm) EditText _passwordConfirmText;
+    @BindView(R.id.btn_signup) Button _signupButton;
+    @BindView(R.id.link_login) TextView _loginLink;
 
     private Socket mSocket;
     private Boolean isConnected = true;
@@ -51,7 +51,7 @@ public class SignUpActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         _signupButton.setOnClickListener(new View.OnClickListener() {
             @Override

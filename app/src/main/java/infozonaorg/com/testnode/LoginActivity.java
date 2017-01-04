@@ -24,8 +24,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 
 import infozonaorg.com.testnode.Clases.Session;
 import io.socket.client.Socket;
@@ -43,17 +43,19 @@ public class LoginActivity extends AppCompatActivity
     private Snackbar snackbarFallo = null;
 
 
-    @InjectView(R.id.input_email) EditText _emailText;
-    @InjectView(R.id.input_password) EditText _passwordText;
-    @InjectView(R.id.btn_login) Button _loginButton;
-    @InjectView(R.id.link_signup) TextView _signupLink;
+    @BindView(R.id.input_email) EditText _emailText;
+    @BindView(R.id.input_password) EditText _passwordText;
+    @BindView(R.id.btn_login) Button _loginButton;
+    @BindView(R.id.link_signup) TextView _signupLink;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        ButterKnife.bind(this);
+        session = new Session(LoginActivity.this);
 
-        if(session != null)
+        if(session.getId() != 0)
         {
             onLoginSuccess();//Cierra la actividad y va directo al mapa porque ya esta la session creada
         }
@@ -68,7 +70,7 @@ public class LoginActivity extends AppCompatActivity
         mSocket.on("usuariologeado", onLoginResult);//obtiene el usuario logeado
         //FIN SOCKETS ----------------------------------------------------------------
 
-        ButterKnife.inject(this);
+
 
         _loginButton.setOnClickListener(new View.OnClickListener() {
 

@@ -64,8 +64,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import infozonaorg.com.testnode.Clases.Cliente;
 import infozonaorg.com.testnode.Clases.Empleado;
 import infozonaorg.com.testnode.Clases.Session;
@@ -77,12 +77,11 @@ import io.socket.emitter.Emitter;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener
-{
+        LocationListener {
 
     private static final String LOCATION_KEY = "";
     private static final String REQUESTING_LOCATION_UPDATES_KEY = "";
-    private static final int MY_PERMISSION_REQUEST_READ_FINE_LOCATION = 1 ;
+    private static final int MY_PERMISSION_REQUEST_READ_FINE_LOCATION = 1;
     private GoogleMap mMap;
 
     // The entry point to Google Play services, used by the Places API and Fused Location Provider.
@@ -98,10 +97,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Snackbar snackbarDesconectado = null;
     private Snackbar snackbarFallo = null;
 
-    @InjectView(R.id.btnBuscarDisponible) Button btnBuscarDisponible;
-    @InjectView(R.id.btnFinalizarTransaccion) Button btnFinalizarTransaccion;
-    @InjectView(R.id.btnCancelarBusqueda) ActionProcessButton btnCancelarBusqueda;
-    @InjectView(R.id.btnToggle)     ImageButton btnToggle;
+    @BindView(R.id.btnBuscarDisponible)
+    Button btnBuscarDisponible;
+    @BindView(R.id.btnFinalizarTransaccion)
+    Button btnFinalizarTransaccion;
+    @BindView(R.id.btnCancelarBusqueda)
+    ActionProcessButton btnCancelarBusqueda;
+    @BindView(R.id.btnToggle)
+    ImageButton btnToggle;
 
 
     //AGREGAR MARCADOR NUEVO
@@ -117,7 +120,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Location mLastLocation = null;
 
     //Location Request
-    LocationRequest  mLocationRequest = null;
+    LocationRequest mLocationRequest = null;
 
     //Algo
     boolean mRequestingLocationUpdates = true;
@@ -184,8 +187,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             tipoUsuario = extras.getString("tipoBoton");
         }
 
-        if(tipoUsuario != null && tipoUsuario.equals("Empleado"))
-        {
+        if (tipoUsuario != null && tipoUsuario.equals("Empleado")) {
             session = new Session(MapsActivity.this);
             empleadoConectado.setId(session.getId());
             empleadoConectado.setUsuario(session.getUsuario());
@@ -195,17 +197,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         }
 
-        if(tipoUsuario != null && tipoUsuario.equals("Cliente"))
-        {
+        if (tipoUsuario != null && tipoUsuario.equals("Cliente")) {
             clienteConectado.setUsuario("Cliente Anonimo");
             clienteConectado.setOnline(true);
             clienteConectado.setEdad(20);
-            mSocket.emit("conectarclienteanonimo",clienteConectado.toJSON());
+            mSocket.emit("conectarclienteanonimo", clienteConectado.toJSON());
 
         }
 
         //BUTTER KNIFE
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         //-------------DRAWER---------------------------
         //Remove line to test RTL support
@@ -219,12 +220,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         IProfile profile3 = null;
-        if(tipoUsuario.equals("Empleado"))
-        {
+        if (tipoUsuario.equals("Empleado")) {
             profile3 = new ProfileDrawerItem().withName(empleadoConectado.getUsuario()).withEmail(empleadoConectado.getEmail()).withIcon(Uri.parse("https://s-media-cache-ak0.pinimg.com/736x/4d/b2/4b/4db24b16ab66d4829fad06aa05c866b5.jpg")).withIdentifier(102);
-        }
-        else
-        {
+        } else {
             profile3 = new ProfileDrawerItem().withName("Anonimo").withEmail("").withIcon(Uri.parse("https://s-media-cache-ak0.pinimg.com/736x/4d/b2/4b/4db24b16ab66d4829fad06aa05c866b5.jpg")).withIdentifier(102);
         }
 
@@ -244,7 +242,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .withHasStableIds(true)
                 .withAccountHeader(headerResult) //set the AccountHeader we created earlier for the header
                 .addDrawerItems(
-                        new PrimaryDrawerItem().withName("Configuracion").withDescription("Edita los datos de la cuenta").withIcon(FontAwesome.Icon.faw_cog).withIdentifier(1).withSelectable(false)
+                        new PrimaryDrawerItem().withName("Configuracion").withDescription("Edita los datos de la cuenta").withIcon(FontAwesome.Icon.faw_cog).withIdentifier(1).withSelectable(false),
+                        new PrimaryDrawerItem().withName("Cerrar Sesion").withIcon(FontAwesome.Icon.faw_power_off).withIdentifier(2).withSelectable(false)
 
                 ) // add the items we want to use with our Drawer
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
@@ -260,6 +259,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             Intent intent = null;
                             if (drawerItem.getIdentifier() == 1) {//Configuracion
                                 intent = new Intent(MapsActivity.this, EditActivity.class);
+                            }
+
+                            if (drawerItem.getIdentifier() == 2) {//Cerrar Sesion
+                                Logout();
                             }
 
                             if (intent != null) {
@@ -287,15 +290,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //------------ FIN DRAWER ------------------------
 
 
-
-
-
         //BOTON BUSCAR DISPONIBLE
         btnBuscarDisponible.setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View arg0)
-            {
+            public void onClick(View arg0) {
 
 
                 buscarEmpleadoDisponible();
@@ -307,8 +306,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         btnFinalizarTransaccion.setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View arg0)
-            {
+            public void onClick(View arg0) {
 
                 finalizarTransaccion();
 
@@ -319,8 +317,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         btnCancelarBusqueda.setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View arg0)
-            {
+            public void onClick(View arg0) {
 
                 cancelarBusqueda();
 
@@ -331,10 +328,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         btnToggle.setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View arg0)
-            {
+            public void onClick(View arg0) {
 
-                if(result != null && !result.isDrawerOpen())
+                if (result != null && !result.isDrawerOpen())
                     result.openDrawer();
 
             }
@@ -401,6 +397,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    private void Logout() {
+        //Borra la session y finaliza la actividad(desconecta al usuario pero no del servidor)
+        session.clearAll();
+        finish();
+
+    }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
@@ -408,10 +411,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(-34.893713,-56.171671)));//Montevideo
         if (ContextCompat.checkSelfPermission(MapsActivity.this,
-                Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission( getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION)
-                        != PackageManager.PERMISSION_GRANTED)
-        {
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
             // Should we show an explanation?
             if (ActivityCompat.shouldShowRequestPermissionRationale(MapsActivity.this,
                     Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -432,20 +434,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // app-defined int constant. The callback method gets the
                 // result of the request.
             }
-        }
-        else
-        {
+        } else {
             //Esto pone el marcador del punto azul y el boton de centrar en el mapa
             mMap.setMyLocationEnabled(true);
 
         }
 
 
-
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(mLocationRequest);
 
-        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient,builder.build());
+        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
         result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
             @Override
             public void onResult(LocationSettingsResult result) {
@@ -482,18 +481,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //Obtiene el cliente que se acaba de conectar
     private Emitter.Listener onClienteAnonimoConectado = new Emitter.Listener() {
         @Override
-        public void call(final Object... args)
-        {
+        public void call(final Object... args) {
             MapsActivity.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    try
-                    {
+                    try {
                         JSONObject data = (JSONObject) args[0];//Obtenemos el unico elemento
                         clienteConectado = new Cliente(data);
 
-                    } catch (Exception e)
-                    {
+                    } catch (Exception e) {
                         Log.e("Error", e.getMessage());
 
                     }
@@ -507,40 +503,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //Obtiene los usuarios cercanos cuando el servidor lo manda
     private Emitter.Listener onCercanos = new Emitter.Listener() {
         @Override
-        public void call(final Object... args)
-        {
+        public void call(final Object... args) {
             MapsActivity.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    try
-                    {
-
+                    try {
 
 
                         lstEmpleadosCercanos = new ArrayList<Empleado>();
                         lista = (JSONArray) args[0];//Obtenemos el array del servidor
-                        for (int con = 0; con < lista.length(); con++)
-                        {
+                        for (int con = 0; con < lista.length(); con++) {
                             JSONObject data = (JSONObject) lista.get(con);//Obtenemos cada elemento
 
                             Empleado e = new Empleado(data);
                             lstEmpleadosCercanos.add(e);
                         }
 
-                        for(Empleado e : lstEmpleadosCercanos)
-                        {
-                            if(e.getUbicacion() != null) {
+                        for (Empleado e : lstEmpleadosCercanos) {
+                            if (e.getUbicacion() != null) {
                                 mMap.addMarker(new MarkerOptions().position(e.getUbicacion()).title(e.getUsuario()).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE)));
-                            }
-                            else
-                            {
-                                Log.w("onCercanos","Ubicacion de " + e.getUsuario() + " no encontrada");
+                            } else {
+                                Log.w("onCercanos", "Ubicacion de " + e.getUsuario() + " no encontrada");
                             }
 
                         }
 
-                    } catch (Exception e)
-                    {
+                    } catch (Exception e) {
                         Log.e("Error", e.getMessage());
 
                     }
@@ -554,21 +542,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //Obtiene la solicitud de un cliente
     private Emitter.Listener onSolicitudCliente = new Emitter.Listener() {
         @Override
-        public void call(final Object... args)
-        {
+        public void call(final Object... args) {
             MapsActivity.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    try
-                    {
-                        if(tipoUsuario.equals("Empleado"))
-                        {
-                            if(alertaSolicitud == null)
-                            {
+                    try {
+                        if (tipoUsuario.equals("Empleado")) {
+                            if (alertaSolicitud == null) {
                                 final JSONObject data = (JSONObject) args[0];//Obtenemos el unico elemento
                                 clienteSolicitud = new Cliente(data);
 
-                                mSocket.off("solicitudcliente",onSolicitudCliente);//Dejo de escuchar hasta que el empleado acepte
+                                mSocket.off("solicitudcliente", onSolicitudCliente);//Dejo de escuchar hasta que el empleado acepte
                                 alertaSolicitud = new AlertDialog.Builder(MapsActivity.this)
                                         .setTitle("Nueva solicitud: " + clienteSolicitud.getUsuario())
                                         .setMessage("Quieres aceptar la solicitud?")
@@ -582,7 +566,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                                 } catch (JSONException e) {
 
-                                                    Log.e("Error",e.getMessage());
+                                                    Log.e("Error", e.getMessage());
                                                 }
 
                                                 JSONObject empleado = empleadoConectado.toJSON();
@@ -592,12 +576,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                                 } catch (JSONException e) {
 
-                                                    Log.e("Error",e.getMessage());
+                                                    Log.e("Error", e.getMessage());
                                                 }
 
                                                 JSONObject transaccion = null;
-                                                try
-                                                {
+                                                try {
                                                     Transaccion t = new Transaccion();
                                                     t.setActiva(true);//Empieza a estar activa
                                                     t.setFechaFinTransaccion(null);
@@ -608,7 +591,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                                 } catch (JSONException e) {
 
-                                                    Log.e("Error",e.getMessage());
+                                                    Log.e("Error", e.getMessage());
                                                 }
 
                                                 JSONArray jsonArray = new JSONArray();
@@ -624,7 +607,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         })
                                         .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
                                             public void onClick(DialogInterface dialog, int which) {
-                                                mSocket.on("solicitudcliente",onSolicitudCliente);
+                                                mSocket.on("solicitudcliente", onSolicitudCliente);
                                                 alertaSolicitud = null;
                                                 clienteSolicitud = null;
                                             }
@@ -634,8 +617,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             }
                         }
 
-                    } catch (Exception e)
-                    {
+                    } catch (Exception e) {
                         Log.e("Error", e.getMessage());
 
                     }
@@ -649,37 +631,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //Cuando el cliente cancela la solicitud
     private Emitter.Listener onSolicitudCancelada = new Emitter.Listener() {
         @Override
-        public void call(final Object... args)
-        {
+        public void call(final Object... args) {
             MapsActivity.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    try
-                    {
-                        if(tipoUsuario.equals("Empleado"))
-                        {
-                            if(alertaSolicitud != null)//Si el mensaje esta mostrado en la pantalla
+                    try {
+                        if (tipoUsuario.equals("Empleado")) {
+                            if (alertaSolicitud != null)//Si el mensaje esta mostrado en la pantalla
                             {
                                 final JSONObject data = (JSONObject) args[0];//Obtenemos el unico elemento
 
-                                if(clienteSolicitud != null)//Si hay un cliente mostrado
+                                if (clienteSolicitud != null)//Si hay un cliente mostrado
                                 {
-                                    if(clienteSolicitud.getId() == data.getInt("id"))//Si es el mismo cliente mostrado que el de la solicitud
+                                    if (clienteSolicitud.getId() == data.getInt("id"))//Si es el mismo cliente mostrado que el de la solicitud
                                     {
                                         alertaSolicitud.dismiss();
                                         alertaSolicitud = null;
-                                        mSocket.on("solicitudcliente",onSolicitudCliente);//Empiezo a escuchar
+                                        mSocket.on("solicitudcliente", onSolicitudCliente);//Empiezo a escuchar
                                     }
                                 }
                             }
 
 
-
-
                         }
 
-                    } catch (Exception e)
-                    {
+                    } catch (Exception e) {
                         Log.e("Error", e.getMessage());
 
                     }
@@ -693,36 +669,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //Obtiene los usuarios cercanos cuando el servidor lo manda
     private Emitter.Listener onTransaccionIniciada = new Emitter.Listener() {
         @Override
-        public void call(final Object... args)
-        {
+        public void call(final Object... args) {
             MapsActivity.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    try
-                    {
-                            mSocket.off("empleadoscercanos",onCercanos);//Dejo de escuchar hasta que finalice
-                            final JSONObject data = (JSONObject) args[0];//Obtenemos el unico elemento
-                            transaccionActual = new Transaccion();
-                            transaccionActual.setIdTransaccion(data.getInt("id"));
-                            transaccionActual.setActiva(true);
-                            Date fechaIni = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(data.getString("fechaInicioTransaccion"));
-                            transaccionActual.setFechaInicioTransaccion(fechaIni);
-                            transaccionActual.setEmpleadoTransaccion(new Empleado(new JSONObject(data.getString("empleadoTransaccion"))));
-                            transaccionActual.setClienteTransaccion(new Cliente(new JSONObject(data.getString("clienteTransaccion"))));
-                            transaccionActiva = true;
-                            btnFinalizarTransaccion.setVisibility(View.VISIBLE);
-                            btnCancelarBusqueda.setVisibility(View.GONE);
-                            btnCancelarBusqueda.setProgress(0);
-                            btnBuscarDisponible.setVisibility(View.GONE);
-                            dibujarTransaccion();
+                    try {
+                        mSocket.off("empleadoscercanos", onCercanos);//Dejo de escuchar hasta que finalice
+                        final JSONObject data = (JSONObject) args[0];//Obtenemos el unico elemento
+                        transaccionActual = new Transaccion();
+                        transaccionActual.setIdTransaccion(data.getInt("id"));
+                        transaccionActual.setActiva(true);
+                        Date fechaIni = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(data.getString("fechaInicioTransaccion"));
+                        transaccionActual.setFechaInicioTransaccion(fechaIni);
+                        transaccionActual.setEmpleadoTransaccion(new Empleado(new JSONObject(data.getString("empleadoTransaccion"))));
+                        transaccionActual.setClienteTransaccion(new Cliente(new JSONObject(data.getString("clienteTransaccion"))));
+                        transaccionActiva = true;
+                        btnFinalizarTransaccion.setVisibility(View.VISIBLE);
+                        btnCancelarBusqueda.setVisibility(View.GONE);
+                        btnCancelarBusqueda.setProgress(0);
+                        btnBuscarDisponible.setVisibility(View.GONE);
+                        dibujarTransaccion();
 
-                            Toast.makeText(getApplicationContext(),
-                                   "Transaccion Iniciada", Toast.LENGTH_LONG).show();
-
+                        Toast.makeText(getApplicationContext(),
+                                "Transaccion Iniciada", Toast.LENGTH_LONG).show();
 
 
-                    } catch (Exception e)
-                    {
+                    } catch (Exception e) {
                         Log.e("Error", e.getMessage());
 
                     }
@@ -736,13 +708,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //Obtiene los usuarios cercanos cuando el servidor lo manda
     private Emitter.Listener onTransaccionFinalizada = new Emitter.Listener() {
         @Override
-        public void call(final Object... args)
-        {
+        public void call(final Object... args) {
             MapsActivity.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    try
-                    {
+                    try {
                         btnBuscarDisponible.setVisibility(View.VISIBLE);
                         btnCancelarBusqueda.setVisibility(View.GONE);
                         btnCancelarBusqueda.setMode(ActionProcessButton.Mode.ENDLESS);
@@ -755,13 +725,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         btnCancelarBusqueda.setVisibility(View.GONE);
                         btnCancelarBusqueda.setProgress(0);
                         btnBuscarDisponible.setVisibility(View.VISIBLE);
-                        mSocket.on("empleadoscercanos",onCercanos);//Escucho los empleados cercanos
-                        mSocket.on("solicitudcliente",onSolicitudCliente);//Vuelvo a escuchar
+                        mSocket.on("empleadoscercanos", onCercanos);//Escucho los empleados cercanos
+                        mSocket.on("solicitudcliente", onSolicitudCliente);//Vuelvo a escuchar
                         dibujarTransaccion();
 
 
-                    } catch (Exception e)
-                    {
+                    } catch (Exception e) {
                         Log.e("Error", e.getMessage());
 
                     }
@@ -778,7 +747,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             MapsActivity.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    if(!isConnected) {
+                    if (!isConnected) {
                         handleSnackBarConexion("conecto");
                         activarBotones();
                         isConnected = true;
@@ -817,7 +786,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     };
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case MY_PERMISSION_REQUEST_READ_FINE_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
@@ -826,6 +795,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        // TODO: Consider calling
+                        //    ActivityCompat#requestPermissions
+                        // here to request the missing permissions, and then overriding
+                        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                        //                                          int[] grantResults)
+                        // to handle the case where the user grants the permission. See the documentation
+                        // for ActivityCompat#requestPermissions for more details.
+                        return;
+                    }
                     mMap.setMyLocationEnabled(true);
 
                 } else {
@@ -842,16 +821,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    public void onDestroy()
-    {
+    public void onDestroy() {
         //TODO
         //Sacar el desconectar del onDestroy y manejarlo mejor
-        Log.w("onDestroy() Maps","Ejecutado");
-        if(tipoUsuario.equals("Empleado")) {
+        Log.w("onDestroy() Maps", "Ejecutado");
+        if (tipoUsuario.equals("Empleado")) {
             desconectarUsuario();
-        }
-        else
-        {
+        } else {
             desconectarClienteAnonimo();
         }
         //desconectarSocket();
@@ -859,16 +835,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    private void desconectarUsuario()
-    {
-        if(tipoUsuario.equals("Empleado")) {
+    private void desconectarUsuario() {
+        if (tipoUsuario.equals("Empleado")) {
             JSONObject informacion = new JSONObject();
             try {
                 informacion = empleadoConectado.toJSON();
 
             } catch (Exception e) {
 
-                Log.e("Error",e.getMessage());
+                Log.e("Error", e.getMessage());
             }
 
             mSocket.emit("desconectarusuario", informacion);
@@ -876,16 +851,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    private void desconectarClienteAnonimo()
-    {
-        if(tipoUsuario.equals("Cliente")) {
+    private void desconectarClienteAnonimo() {
+        if (tipoUsuario.equals("Cliente")) {
             JSONObject informacion = new JSONObject();
             try {
                 informacion = clienteConectado.toJSON();
 
             } catch (Exception e) {
 
-                Log.e("Error",e.getMessage());
+                Log.e("Error", e.getMessage());
             }
 
             mSocket.emit("desconectarclienteanonimo", informacion);
@@ -940,6 +914,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onConnected(Bundle bundle) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
         if (mLastLocation != null)
