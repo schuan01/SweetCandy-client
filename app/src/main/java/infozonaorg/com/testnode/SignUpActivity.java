@@ -97,7 +97,7 @@ public class SignUpActivity extends AppCompatActivity
         final ProgressDialog progressDialog = new ProgressDialog(SignUpActivity.this,
                 R.style.AppTheme);
         progressDialog.setIndeterminate(true);
-        progressDialog.setMessage("Enviando al servidor...");
+        progressDialog.setMessage(getString(R.string.txt_EnviandoServidor));
         progressDialog.show();
 
         String usuario = _usuarioText.getText().toString();
@@ -158,7 +158,7 @@ public class SignUpActivity extends AppCompatActivity
     }
 
     public void onSignupFailed() {
-        Toast.makeText(getBaseContext(), "Creación de usuario fallo", Toast.LENGTH_LONG).show();
+        Toast.makeText(getBaseContext(), R.string.txtCreacionFallo, Toast.LENGTH_LONG).show();
 
         _signupButton.setEnabled(true);
     }
@@ -172,21 +172,21 @@ public class SignUpActivity extends AppCompatActivity
         String passwordConfirm = _passwordConfirmText.getText().toString();
 
         if (usuario.isEmpty() || usuario.length() < 3) {
-            _usuarioText.setError("Al menos 3 caracteres");
+            _usuarioText.setError(getString(R.string.txtUsuarioTresCaracteres));
             valid = false;
         } else {
             _usuarioText.setError(null);
         }
 
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _emailText.setError("El mail no es valido");
+            _emailText.setError(getString(R.string.txt_mailInvalido));
             valid = false;
         } else {
             _emailText.setError(null);
         }
 
         if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
-            _passwordText.setError("Contraseña deber ser entre 4 y 10 caracteres");
+            _passwordText.setError(getString(R.string.txt_ControlPassword));
             valid = false;
         }
         else {
@@ -195,7 +195,7 @@ public class SignUpActivity extends AppCompatActivity
 
         if(passwordConfirm.isEmpty() || !passwordConfirm.equals(password))
         {
-            _passwordConfirmText.setError("Ambas contraseñas no coinciden");
+            _passwordConfirmText.setError(getString(R.string.txt_ControlRepetirPass));
             valid = false;
         }
         else {
@@ -226,19 +226,14 @@ public class SignUpActivity extends AppCompatActivity
                     {
 
                         progressDialog.setIndeterminate(true);
-                        progressDialog.setMessage("Creando usuario");
+                        progressDialog.setMessage(getString(R.string.txtCreandoUsuario));
                         progressDialog.show();
                         JSONObject data = (JSONObject) args[0];//Obtenemos el array del servidor
 
                         if(data.getString("id") != null)
                             {
                                 int idEmpleado = data.getInt("id");
-                                if (idEmpleado > 0) {
-                                    creadoCorrectamente = true;
-
-                                } else {
-                                    creadoCorrectamente = false;
-                                }
+                                creadoCorrectamente = idEmpleado > 0;
 
                                 if (creadoCorrectamente) {
                                     progressDialog.dismiss();
@@ -326,7 +321,7 @@ public class SignUpActivity extends AppCompatActivity
                     snackbarDesconectado = null;
                 }
                 if(snackbarFallo == null) {
-                    snackbarFallo = Snackbar.make(findViewById(android.R.id.content), "Fallo al conectar", Snackbar.LENGTH_INDEFINITE);
+                    snackbarFallo = Snackbar.make(findViewById(android.R.id.content),  R.string.error_connect, Snackbar.LENGTH_INDEFINITE);
                     View sbView = snackbarFallo.getView();
                     sbView.setBackgroundColor(Color.RED);
                     TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
@@ -341,7 +336,7 @@ public class SignUpActivity extends AppCompatActivity
                     snackbarFallo = null;
                 }
                 if(snackbarDesconectado == null) {
-                    snackbarDesconectado = Snackbar.make(findViewById(android.R.id.content), "Desconectado", Snackbar.LENGTH_INDEFINITE);
+                    snackbarDesconectado = Snackbar.make(findViewById(android.R.id.content), R.string.text_desconectado, Snackbar.LENGTH_INDEFINITE);
                     View sbView = snackbarDesconectado.getView();
                     sbView.setBackgroundColor(Color.RED);
                     TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
@@ -364,7 +359,7 @@ public class SignUpActivity extends AppCompatActivity
                 }
 
                 if(snackbarConectado == null) {
-                    snackbarConectado = Snackbar.make(findViewById(android.R.id.content),"Conectado", Snackbar.LENGTH_SHORT);
+                    snackbarConectado = Snackbar.make(findViewById(android.R.id.content), R.string.text_conectado, Snackbar.LENGTH_SHORT);
                     View sbView = snackbarConectado.getView();
                     sbView.setBackgroundColor(Color.GREEN);
                     TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);

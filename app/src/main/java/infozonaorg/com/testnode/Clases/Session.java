@@ -3,6 +3,18 @@ package infozonaorg.com.testnode.Clases;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.Log;
+
+import com.securepreferences.SecurePreferences;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by jvolpe on 08/12/2016.
@@ -14,7 +26,7 @@ public class Session
 
     public Session(Context cntx) {
 
-        prefs = PreferenceManager.getDefaultSharedPreferences(cntx);
+        prefs = new SecurePreferences(cntx);
     }
 
     public void setId(int id)
@@ -71,8 +83,64 @@ public class Session
         return tipo;
     }
 
+    public void setPwd(String pwd) {
+        prefs.edit().putString("pwd", pwd).apply();
+    }
+
+    public String getPwd() {
+        String pwd = prefs.getString("pwd","");
+        return pwd;
+    }
+
+    public void setFotos(ArrayList<String> fotos)
+    {
+        if(fotos.size() > 0) {
+            Set<String> datos = new HashSet<String>(fotos);
+            prefs.edit().putStringSet("fotos", datos).apply();
+        }
+        else
+        {
+            Set<String> datos = new HashSet<String>();
+            prefs.edit().putStringSet("fotos", datos).apply();
+        }
+    }
+
+    public ArrayList<String> getFotos()
+    {
+        Set<String> fotos = prefs.getStringSet("fotos", new HashSet<String>());
+        ArrayList<String> col = new ArrayList<>();
+        col.addAll(fotos);
+        return col;
+    }
+
     public void clearAll()
     {
         prefs.edit().clear().commit();
+    }
+
+    public JSONObject toJSON(){
+
+        JSONObject jsonObject= new JSONObject();
+        try {
+            jsonObject.put("id", getId());
+            jsonObject.put("usuario", getUsuario());
+            jsonObject.put("edad", getEdad());
+            jsonObject.put("email", getEmail());
+            JSONArray fotos = new JSONArray();
+            for (String url: getFotos())
+            {
+                JSONObject j = new JSONObject();
+                j.put("urlFoto",url);
+                fotos.put(j);
+            }
+
+            jsonObject.put("Fotos", fotos);
+
+            return jsonObject;
+        } catch (JSONException e) {
+            Log.e("ERROR",e.getMessage());
+            return null;
+        }
+
     }
 }

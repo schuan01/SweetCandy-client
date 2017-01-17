@@ -11,7 +11,7 @@
     tools:context="infozonaorg.com.testnode.MainActivity">
 
     <Button
-        android:text="Mapa Cliente"
+        android:text="@string/btnMapaCliente"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/btnMapa"
@@ -19,7 +19,7 @@
         android:layout_centerHorizontal="true" />
 
     <Button
-        android:text="Login"
+        android:text="@string/btnIngresar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
@@ -29,7 +29,7 @@
         android:layout_alignEnd="@+id/btnMapa" />
 
     <Button
-        android:text="Registro"
+        android:text="@string/title_activity_sign_up"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/btnSignUp"

@@ -16,7 +16,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_gravity="center|bottom"
-    android:text="Buscar"
+    android:text="@string/btnBuscar"
     android:padding="10dp"
     android:id="@+id/btnBuscarDisponible" />
 
@@ -24,7 +24,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center|bottom"
-        android:text="Finalizar"
+        android:text="@string/btnFinalizar"
         android:visibility="gone"
         android:padding="10dp"
         android:id="@+id/btnFinalizarTransaccion" />
@@ -33,9 +33,10 @@
     <ImageButton android:id="@+id/btnToggle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="left|top"
+        android:layout_gravity="start|top"
         android:src="@drawable/ic_toggle"
-        android:background="@null"></ImageButton>
+        android:background="@null"
+        tools:ignore="ContentDescription"/>
 
     <com.dd.processbutton.iml.ActionProcessButton
         android:id="@+id/btnCancelarBusqueda"
@@ -43,7 +44,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center|bottom"
         android:padding="10dp"
-        android:text="Cancelar Busqueda"
+        android:text="@string/btnCancelarBusqueda"
         android:visibility="gone"
         android:textColor="@android:color/white"
         android:textSize="18sp"

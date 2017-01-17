@@ -247,7 +247,7 @@ public class MainActivity extends AppCompatActivity
                         snackbarDesconectado = null;
                     }
                     if (snackbarFallo == null) {
-                        snackbarFallo = Snackbar.make(findViewById(android.R.id.content), "Fallo al conectar", Snackbar.LENGTH_INDEFINITE);
+                        snackbarFallo = Snackbar.make(findViewById(android.R.id.content), R.string.error_connect, Snackbar.LENGTH_INDEFINITE);
                         View sbView = snackbarFallo.getView();
                         sbView.setBackgroundColor(Color.RED);
                         TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
@@ -263,7 +263,7 @@ public class MainActivity extends AppCompatActivity
                         snackbarFallo = null;
                     }
                     if (snackbarDesconectado == null) {
-                        snackbarDesconectado = Snackbar.make(findViewById(android.R.id.content), "Desconectado", Snackbar.LENGTH_INDEFINITE);
+                        snackbarDesconectado = Snackbar.make(findViewById(android.R.id.content), R.string.text_desconectado, Snackbar.LENGTH_INDEFINITE);
                         View sbView = snackbarDesconectado.getView();
                         sbView.setBackgroundColor(Color.RED);
                         TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
@@ -286,7 +286,7 @@ public class MainActivity extends AppCompatActivity
                     }
 
                     if (snackbarConectado == null) {
-                        snackbarConectado = Snackbar.make(findViewById(android.R.id.content), "Conectado", Snackbar.LENGTH_SHORT);
+                        snackbarConectado = Snackbar.make(findViewById(android.R.id.content), R.string.text_conectado, Snackbar.LENGTH_SHORT);
                         View sbView = snackbarConectado.getView();
                         sbView.setBackgroundColor(Color.GREEN);
                         TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);

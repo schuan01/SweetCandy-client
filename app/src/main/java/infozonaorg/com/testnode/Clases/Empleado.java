@@ -22,13 +22,13 @@ public class Empleado extends Usuario {
     private float rating;
     private String descripcion;
     private float costo;
-    private ArrayList<Drawable> fotos;//DEVUELVE LOS IDENTIFICADORES DE CADA DRAWABLE
+    private ArrayList<String> fotos;//DEVUELVE LAS URL DE CADA DRAWABLE
 
-    public ArrayList<Drawable> getFotos() {
+    public ArrayList<String> getFotos() {
         return fotos;
     }
 
-    public void setFotos(ArrayList<Drawable> fotos) {
+    public void setFotos(ArrayList<String> fotos) {
         this.fotos = fotos;
     }
 
@@ -59,7 +59,7 @@ public class Empleado extends Usuario {
 
 
 
-    public Empleado(int id,String usuario, String urlFoto, LatLng ubicacion, int edad, Boolean isOnline, float rating, String descripcion, float costo, String email, String password, ArrayList<Drawable> imagenes) {
+    public Empleado(int id,String usuario, String urlFoto, LatLng ubicacion, int edad, Boolean isOnline, float rating, String descripcion, float costo, String email, String password, ArrayList<String> imagenes) {
         super(id,usuario, urlFoto, ubicacion, edad,isOnline,email,password);
 
         setRating(rating);
@@ -89,7 +89,7 @@ public class Empleado extends Usuario {
         setRating(0.0f);
         setDescripcion("Default");
         setCosto(0);
-        setFotos(new ArrayList<Drawable>());
+        setFotos(new ArrayList<String>());
 
     }
 

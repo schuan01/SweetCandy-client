@@ -2,6 +2,7 @@ package infozonaorg.com.testnode;
 
 import android.app.Application;
 import android.content.Context;
+import android.support.multidex.MultiDex;
 
 
 import java.net.URISyntaxException;
@@ -20,7 +21,16 @@ public class TestApplication extends Application {
     static List<Empleado> lstEmpleadosConectados = new ArrayList<>();
     static List<Cliente> lstClientesConectoads = new ArrayList<>();
 
+    @Override
+    protected void attachBaseContext(Context context) {
+        super.attachBaseContext(context);
+        MultiDex.install(this);
+    }
+    @Override
+    public void onCreate() {
+        super.onCreate();
 
+    }
 
     private Socket mSocket;
     {

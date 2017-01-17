@@ -7,26 +7,17 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
-
 import android.content.Intent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-
-
-
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.util.ArrayList;
-
+import java.security.MessageDigest;;
 import butterknife.BindView;
 import butterknife.ButterKnife;
-
 import infozonaorg.com.testnode.Clases.Session;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -41,6 +32,9 @@ public class LoginActivity extends AppCompatActivity
     private Snackbar snackbarConectado = null;
     private Snackbar snackbarDesconectado = null;
     private Snackbar snackbarFallo = null;
+    private String passwordTmp = "";
+    private ProgressDialog progress;
+    private boolean test = true;
 
 
     @BindView(R.id.input_email) EditText _emailText;
@@ -54,12 +48,6 @@ public class LoginActivity extends AppCompatActivity
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
         session = new Session(LoginActivity.this);
-
-        if(session.getId() != 0)
-        {
-            onLoginSuccess();//Cierra la actividad y va directo al mapa porque ya esta la session creada
-        }
-
         //SOCKETS ----------------------------------------------------------------
         TestApplication app = (TestApplication) getApplication();
         mSocket = app.getSocket();
@@ -71,12 +59,58 @@ public class LoginActivity extends AppCompatActivity
         //FIN SOCKETS ----------------------------------------------------------------
 
 
+        if(session.getId() != 0)
+        {
+            progress = ProgressDialog.show(this, getString(R.string.txt_cargando),
+                    getString(R.string.txt_iniciandoSesion), true);
+
+            new Thread(new Runnable() {
+                @Override
+                public void run()
+                {
+
+                    autoLogin();//Proceso el autologin
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run()
+                        {
+
+                        }
+                    });
+                }
+            }).start();
+
+        }
+
+
+
+
 
         _loginButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                login();
+                progress = ProgressDialog.show(LoginActivity.this, getString(R.string.txt_cargando),
+                        getString(R.string.txt_iniciandoSesion), true);
+
+                new Thread(new Runnable()
+                {
+                    @Override
+                    public void run() {
+
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run()
+                            {
+                                login();
+
+                            }
+                        });
+
+                    }
+                }).start();
             }
         });
 
@@ -92,47 +126,45 @@ public class LoginActivity extends AppCompatActivity
     }
 
     public void login() {
-        Log.d(TAG, "Login");
-        _loginButton.setEnabled(false);
 
-        if (!validate()) {
-            onLoginFailed();
-            return;
-        }
+                Log.d(TAG, "Login");
+                _loginButton.setEnabled(false);
+                estadoInput();
 
+                if (!validate()) {
+                    onLoginFailed();
+                    return;
+                }
 
+                String email = _emailText.getText().toString();
+                String password = _passwordText.getText().toString();
 
-        String email = _emailText.getText().toString();
-        String password = _passwordText.getText().toString();
+                email.toLowerCase();
+                password.toLowerCase();
+                try {
+                    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                    password += Constantes.TEXTOFIJO;
+                    byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+                    password = Base64.encodeToString(hash, Base64.DEFAULT);
+                    passwordTmp = password;
+                }
+                catch (Exception ex)
+                {
+                    Log.e("ERROR",ex.getMessage());
+                }
 
-        email.toLowerCase();
-        password.toLowerCase();
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            password += Constantes.TEXTOFIJO;
-            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
-            String base64 = Base64.encodeToString(hash, Base64.DEFAULT);
-            password = base64;
-        }
-        catch (Exception ex)
-        {
-            Log.e("ERROR",ex.getMessage());
-        }
+                JSONObject informacion = new JSONObject();
+                try {
+                    informacion.put("email", email);
+                    informacion.put("password", password);
 
-        JSONObject informacion = new JSONObject();
-        try {
-            informacion.put("email", email);
-            informacion.put("password", password);
+                } catch (JSONException e) {
 
-        } catch (JSONException e) {
+                    Log.e("Error",e.getMessage());
+                }
 
-            Log.e("Error",e.getMessage());
-        }
-
-        mSocket.emit("loginempleado", informacion);
-
-
-    }
+                mSocket.emit("loginempleado", informacion);
+            }
 
     //Obtiene el usuario logeado correctamente
     private Emitter.Listener onLoginResult = new Emitter.Listener() {
@@ -155,6 +187,10 @@ public class LoginActivity extends AppCompatActivity
                             session.setDescripcion(usuario.getString("descripcion"));
                             session.setEdad(usuario.getInt("edad"));
                             session.setTipoUsuario("Empleado");
+                            if(!passwordTmp.equals("")) {
+                                session.setPwd(passwordTmp);
+                            }
+
                             onLoginSuccess();
                         }
                         else
@@ -185,25 +221,43 @@ public class LoginActivity extends AppCompatActivity
         }
     }
 
+    public void autoLogin()
+    {
+        JSONObject informacion = new JSONObject();
+        try {
+            informacion.put("email", session.getEmail());
+            informacion.put("password", session.getPwd());
+
+        } catch (JSONException e) {
+
+            Log.e("Error",e.getMessage());
+        }
+
+        mSocket.emit("loginempleado", informacion);
+    }
+
     public void onLoginSuccess() {
         _loginButton.setEnabled(true);
+        progress.dismiss();
         finish();
         Intent about = new Intent(LoginActivity.this, MapsActivity.class);
         about.putExtra("tipoBoton","Empleado");
         about.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         about.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(about);
+
     }
 
     public void onLoginFailed() {
-        Snackbar fallo = Snackbar.make(findViewById(android.R.id.content), "Fallo al ingresar", Snackbar.LENGTH_INDEFINITE);
+        estadoInput();
+        Snackbar fallo = Snackbar.make(findViewById(android.R.id.content), R.string.error_connect, Snackbar.LENGTH_INDEFINITE);
         View sbView = fallo.getView();
         sbView.setBackgroundColor(Color.RED);
         TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
         tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         fallo.show();
-
         _loginButton.setEnabled(true);
+        progress.dismiss();
     }
 
     public boolean validate() {
@@ -213,14 +267,14 @@ public class LoginActivity extends AppCompatActivity
         String password = _passwordText.getText().toString();
 
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _emailText.setError("Ingrese un mail valido");
+            _emailText.setError(getString(R.string.txt_mailInvalido));
             valid = false;
         } else {
             _emailText.setError(null);
         }
 
         if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
-            _passwordText.setError("Contraseña entre 4 y 10 caracteres");
+            _passwordText.setError(getString(R.string.txt_ControlPassword));
             valid = false;
         } else {
             _passwordText.setError(null);
@@ -293,6 +347,19 @@ public class LoginActivity extends AppCompatActivity
     {
         _loginButton.setEnabled(true);
 
+    }
+
+    private void estadoInput()
+    {
+        if(_emailText.isEnabled())
+            _emailText.setEnabled(false);
+        else
+            _emailText.setEnabled(true);
+
+        if(_passwordText.isEnabled())
+            _passwordText.setEnabled(false);
+        else
+            _passwordText.setEnabled(true);
     }
 
     private void handleSnackBarConexion(String evento)

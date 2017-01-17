@@ -5,6 +5,7 @@ import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -22,6 +23,9 @@ public class Transaccion
     private Date fechaFinTransaccion;
     private boolean isActiva = false;
     private float totalTransaccion;
+
+
+    private int idBusquedaTransaccion;
 
     public int getIdTransaccion() {
         return idTransaccion;
@@ -79,7 +83,15 @@ public class Transaccion
         this.totalTransaccion = totalTransaccion;
     }
 
-    public Transaccion(int id, Empleado empleadoTransaccion, Cliente clienteTransaccion, Date fechaInicioTransaccion, Date fechaFinTransaccion, boolean isActiva, float totalTransaccion) {
+    public int getIdBusquedaTransaccion() {
+        return idBusquedaTransaccion;
+    }
+
+    public void setIdBusquedaTransaccion(int idBusquedaTransaccion) {
+        this.idBusquedaTransaccion = idBusquedaTransaccion;
+    }
+
+    public Transaccion(int id, Empleado empleadoTransaccion, Cliente clienteTransaccion, Date fechaInicioTransaccion, Date fechaFinTransaccion, boolean isActiva, float totalTransaccion, int idBusqueda) {
         setIdTransaccion(id);
         setEmpleadoTransaccion(empleadoTransaccion);
         setClienteTransaccion(clienteTransaccion);
@@ -87,6 +99,7 @@ public class Transaccion
         setFechaFinTransaccion(fechaFinTransaccion);
         setActiva(isActiva);
         setTotalTransaccion(totalTransaccion);
+        setIdBusquedaTransaccion(idBusqueda);
     }
 
     public Transaccion()
@@ -98,6 +111,28 @@ public class Transaccion
         setFechaFinTransaccion(new Date());
         setActiva(false);
         setTotalTransaccion(0.00f);
+        setIdBusquedaTransaccion(0);
+    }
+
+    public Transaccion(JSONObject obj)
+    {
+        try {
+
+            setClienteTransaccion(new Cliente(obj.getJSONObject("clienteTransaccion")));
+            setEmpleadoTransaccion(new Empleado(obj.getJSONObject("empleadoTransaccion")));
+            Date fechaIni = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(obj.getString("fechaInicioTransaccion"));
+            Date fechaFin = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(obj.getString("fechaFinTransaccion"));
+            setFechaInicioTransaccion(fechaIni);
+            setFechaFinTransaccion(fechaFin);
+            setActiva(obj.getBoolean("isActiva"));
+            setIdTransaccion(obj.getInt("id"));
+            setTotalTransaccion(Float.parseFloat(obj.getString("totalTransaccion")));
+            setIdBusquedaTransaccion(obj.getInt("idBusquedaTransaccion"));
+
+        } catch (Exception e)
+        {
+            Log.e("Error",e.getMessage());
+        }
     }
 
     public JSONObject toJSON(){
@@ -111,9 +146,10 @@ public class Transaccion
             jsonObject.put("isActiva", isActiva());
             jsonObject.put("clienteTransaccion", getClienteTransaccion().toJSON());
             jsonObject.put("empleadoTransaccion", getEmpleadoTransaccion().toJSON());
+            jsonObject.put("idBusquedaTransaccion",getIdBusquedaTransaccion());
 
             return jsonObject;
-        } catch (JSONException e) {
+        } catch (Exception e) {
             Log.e("ERROR",e.getMessage());
             return null;
         }

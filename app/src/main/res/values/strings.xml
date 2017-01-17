@@ -1,14 +1,42 @@
 <resources>
     <string name="app_name">TestNode</string>
 
-    <string name="connect">Conectado!</string>
-    <string name="disconnect">Desconectado, Por favor verifica la conexion</string>
-    <string name="error_connect">Fallo al conectar</string>
+    <string name="connect">Connected!</string>
+    <string name="disconnect">Disconnected, please verify the connection</string>
+    <string name="error_connect">Failed to connect</string>
     <string name="title_activity_maps">Map</string>
-    <string name="title_activity_sign_up">Registrarse</string>
+    <string name="title_activity_sign_up">Register</string>
     <string name="title_activity_log_in">Login</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="text_desconectado">Disconnected</string>
+    <string name="text_conectado">Connected</string>
+    <string name="txtv_login">LOGIN</string>
+    <string name="hint_usuario">User</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_repetirpassword">Repeat Password</string>
+    <string name="btnCrearCuenta">Create Account</string>
+    <string name="txtv_registrado">Already registered? Login</string>
+    <string name="btnIngresar">Login</string>
+    <string name="btnSinCuenta">Dont have account? Create New</string>
+    <string name="txtv_sinTransacciones">No transactions</string>
+    <string name="btnBuscar">Search</string>
+    <string name="btnFinalizar">Finish</string>
+    <string name="btnCancelarBusqueda">Cancel Search</string>
+    <string name="btnMapaCliente">Client Map</string>
+    <string name="txtCreandoUsuario">Creating User</string>
+    <string name="txtCreacionFallo">Failed to create user</string>
+    <string name="txtUsuarioTresCaracteres">At least 3 characters</string>
+    <string name="txt_mailInvalido">Invalid Email</string>
+    <string name="txt_ControlPassword">Password must be between 4 and 10 characters</string>
+    <string name="txt_ControlRepetirPass">Both passwords doesnt match</string>
+    <string name="txt_EnviandoServidor">Sending to server…</string>
+    <string name="txt_cargando">Loading…</string>
+    <string name="txt_iniciandoSesion">Logging in</string>
+    <string name="txt_NuevaSolicitud">New Request: </string>
+    <string name="txt_QuieresAceptar">Do you want to accept the request?</string>
+    <string name="txtEdadMinima">Must be at least 18 years old</string>
 
 </resources>

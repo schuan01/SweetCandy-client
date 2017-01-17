@@ -137,9 +137,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //Para saber si hay una transaccion activa actualmente
     boolean transaccionActiva = false;
 
-    //Para el drawer
-    //save our header or result
-    private AccountHeader headerResult = null;
     private Drawer result = null;
 
     //Buscando empleado disponible
@@ -227,7 +224,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         // Create the AccountHeader
-        headerResult = new AccountHeaderBuilder()
+        AccountHeader headerResult = new AccountHeaderBuilder()
                 .withActivity(this)
                 .withTranslucentStatusBar(true)
                 .withHeaderBackground(R.drawable.material_background3)
@@ -550,12 +547,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         if (tipoUsuario.equals("Empleado")) {
                             if (alertaSolicitud == null) {
                                 final JSONObject data = (JSONObject) args[0];//Obtenemos el unico elemento
-                                clienteSolicitud = new Cliente(data);
+                                final Transaccion tr = new Transaccion(data);
+                                clienteSolicitud = tr.getClienteTransaccion();
 
                                 mSocket.off("solicitudcliente", onSolicitudCliente);//Dejo de escuchar hasta que el empleado acepte
                                 alertaSolicitud = new AlertDialog.Builder(MapsActivity.this)
-                                        .setTitle("Nueva solicitud: " + clienteSolicitud.getUsuario())
-                                        .setMessage("Quieres aceptar la solicitud?")
+                                        .setTitle(getString(R.string.txt_NuevaSolicitud) + clienteSolicitud.getUsuario())
+                                        .setMessage(R.string.txt_QuieresAceptar)
                                         .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                                             public void onClick(DialogInterface dialog, int which) {
 
@@ -581,12 +579,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                                 JSONObject transaccion = null;
                                                 try {
-                                                    Transaccion t = new Transaccion();
-                                                    t.setActiva(true);//Empieza a estar activa
-                                                    t.setFechaFinTransaccion(null);
-                                                    t.setEmpleadoTransaccion(empleadoConectado);
-                                                    t.setClienteTransaccion(clienteSolicitud);
-                                                    transaccion = t.toJSON();
+                                                    tr.setActiva(true);//Empieza a estar activa
+                                                    tr.setFechaFinTransaccion(null);
+                                                    tr.setEmpleadoTransaccion(empleadoConectado);
+                                                    tr.setClienteTransaccion(clienteSolicitud);
+                                                    transaccion = tr.toJSON();
                                                     transaccion.put("tipo", "Transaccion");
 
                                                 } catch (JSONException e) {
@@ -926,15 +923,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
-        if (mLastLocation != null)
-        {
+        if (mLastLocation != null) {
 
             //Cuando conecta, me manda a la ubicacion
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude()),15.0f));//Mi ubicacion
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()), 15.0f));//Mi ubicacion
 
 
-            if(tipoUsuario.equals("Cliente"))
-            {
+            if (tipoUsuario.equals("Cliente")) {
                 //TODO
                 //Borrar el marcador YO ya que voy a usar el marcador por defecto del mapa(punto azul)
 
@@ -952,18 +947,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 } catch (JSONException e) {
 
-                    Log.e("Error",e.getMessage());
+                    Log.e("Error", e.getMessage());
                 }
 
 
-                if(!transaccionActiva || transaccionActual == null) {
+                if (!transaccionActiva || transaccionActual == null) {
                     //Manda la info necesaria para saber cercanos en el servidor
                     mSocket.emit("getcercanos", informacion);
                 }
             }
 
-            if(tipoUsuario.equals("Empleado"))
-            {
+            if (tipoUsuario.equals("Empleado")) {
                 marcadorYo = mMap.addMarker(new MarkerOptions().position(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()))
                         .title(empleadoConectado.getUsuario())
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
@@ -973,28 +967,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
                 JSONObject informacion = new JSONObject();
-                try
-                {
+                try {
                     informacion = empleadoConectado.toJSON();
 
                 } catch (Exception e) {
 
-                    Log.e("Error",e.getMessage());
+                    Log.e("Error", e.getMessage());
                 }
 
-                    //Manda la info necesaria del empleado en cuestion
-                    mSocket.emit("setubacionempleado", informacion);
+                //Manda la info necesaria del empleado en cuestion
+                mSocket.emit("setubacionempleado", informacion);
 
             }
 
-            Log.i("LATITUD onConnected",String.valueOf(mLastLocation.getLatitude()));
-            Log.i("LONGITUD onConnected",String.valueOf(mLastLocation.getLongitude()));
+            Log.i("LATITUD onConnected", String.valueOf(mLastLocation.getLatitude()));
+            Log.i("LONGITUD onConnected", String.valueOf(mLastLocation.getLongitude()));
 
 
-        }
-        else
-        {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(-34.893713,-56.171671),15.0f));//Montevideo
+        } else {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(-34.893713, -56.171671), 15.0f));//Montevideo
         }
 
         if (mRequestingLocationUpdates) {
@@ -1012,16 +1003,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void updateUI() {
         if (mLastLocation != null) {
             mMap.clear();
-            if(tipoUsuario.equals("Cliente"))
-            {
+            if (tipoUsuario.equals("Cliente")) {
                 marcadorYo = mMap.addMarker(new MarkerOptions().position(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()))
                         .title(clienteConectado.getUsuario())
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
 
                 clienteConectado.setUbicacion(marcadorYo.getPosition());
 
-                if(transaccionActiva && transaccionActual != null)
-                {
+                if (transaccionActiva && transaccionActual != null) {
                     transaccionActual.getClienteTransaccion().setUbicacion(marcadorYo.getPosition());
                 }
 
@@ -1032,17 +1021,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 } catch (JSONException e) {
 
-                    Log.e("Error",e.getMessage());
+                    Log.e("Error", e.getMessage());
                 }
 
                 //Manda la info necesaria para saber cercanos en el servidor
-                if(!transaccionActiva || transaccionActual == null) {
+                if (!transaccionActiva || transaccionActual == null) {
                     mSocket.emit("getcercanos", informacion);
                 }
             }
 
-            if(tipoUsuario.equals("Empleado"))
-            {
+            if (tipoUsuario.equals("Empleado")) {
                 marcadorYo = mMap.addMarker(new MarkerOptions().position(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()))
                         .title(empleadoConectado.getUsuario())
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
@@ -1050,22 +1038,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //Le seteamos la ubicacion marcada
                 empleadoConectado.setUbicacion(marcadorYo.getPosition());
 
-                if(transaccionActiva && transaccionActual != null)
-                {
+                if (transaccionActiva && transaccionActual != null) {
                     transaccionActual.getEmpleadoTransaccion().setUbicacion(marcadorYo.getPosition());
                 }
 
 
                 JSONObject informacion = new JSONObject();
-                try
-                {
+                try {
                     informacion = empleadoConectado.toJSON();
 
                 } catch (Exception e) {
 
-                    Log.e("Error",e.getMessage());
+                    Log.e("Error", e.getMessage());
                 }
-
 
 
                 //Manda la info necesaria del empleado en cuestion
@@ -1082,10 +1067,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void dibujarTransaccion()
-    {
+    private void dibujarTransaccion() {
 
-        if(transaccionActiva && transaccionActual != null) {
+        if (transaccionActiva && transaccionActual != null) {
             mMap.clear();
 
             Marker clienteT = mMap.addMarker(new MarkerOptions().position(transaccionActual.getClienteTransaccion().getUbicacion()).title(transaccionActual.getClienteTransaccion().getUsuario())
@@ -1099,67 +1083,59 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void buscarEmpleadoDisponible()
-    {
-        if(tipoUsuario.equals("Cliente"))
-        {
-            try
-            {
+    private void buscarEmpleadoDisponible() {
+        if (tipoUsuario.equals("Cliente")) {
+            try {
                 btnBuscarDisponible.setVisibility(View.GONE);
                 btnCancelarBusqueda.setVisibility(View.VISIBLE);
                 btnCancelarBusqueda.setMode(ActionProcessButton.Mode.ENDLESS);
                 btnCancelarBusqueda.setProgress(1);
                 buscandoEmpleado = true;
 
-                mSocket.emit("buscardisponible",clienteConectado.toJSON());
+                Transaccion t = new Transaccion();
+                t.setClienteTransaccion(clienteConectado);
+
+                mSocket.emit("buscardisponible", t.toJSON());
 
 
             } catch (Exception e) {
 
-                Log.e("Error",e.getMessage());
+                Log.e("Error", e.getMessage());
             }
 
 
-
-
-
-        }
-        else if(tipoUsuario.equals("Empleado"))
-        {
+        } else if (tipoUsuario.equals("Empleado")) {
             //TODO
             //BORRAR
             Cliente c = new Cliente();
-            c.setUbicacion(new LatLng(-34.8931971,-56.1616734));//Cerca del trabajo
+            c.setUbicacion(new LatLng(-34.8931971, -56.1616734));//Cerca del trabajo
             JSONObject cliente = null;
             JSONObject empleado = null;
             JSONObject transaccion = null;
 
             try {
-                cliente =c.toJSON();
-                cliente.put("tipo","Cliente");
+                cliente = c.toJSON();
+                cliente.put("tipo", "Cliente");
                 empleado = empleadoConectado.toJSON();
-                empleado.put("tipo","Empleado");
+                empleado.put("tipo", "Empleado");
 
             } catch (Exception e) {
 
-                Log.e("Error",e.getMessage());
+                Log.e("Error", e.getMessage());
             }
 
 
-
-
-            try
-            {
+            try {
                 Transaccion t = new Transaccion();
                 t.setFechaFinTransaccion(null);
                 t.setEmpleadoTransaccion(empleadoConectado);
                 t.setClienteTransaccion(c);
                 transaccion = t.toJSON();
-                transaccion.put("tipo","Transaccion");
+                transaccion.put("tipo", "Transaccion");
 
             } catch (Exception e) {
 
-                Log.e("Error",e.getMessage());
+                Log.e("Error", e.getMessage());
             }
 
             JSONArray jsonArray = new JSONArray();
@@ -1177,14 +1153,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     protected void onPause() {
-        Log.w("onPause() Maps","Ejecutado");
+        Log.w("onPause() Maps", "Ejecutado");
         super.onPause();
         stopLocationUpdates();
     }
 
     @Override
     public void onResume() {
-        Log.w("onResume() Maps","Ejecutado");
+        Log.w("onResume() Maps", "Ejecutado");
         super.onResume();
         if (mGoogleApiClient.isConnected() && !mRequestingLocationUpdates) {
             startLocationUpdates();
@@ -1192,14 +1168,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     protected void stopLocationUpdates() {
-        if(mGoogleApiClient.isConnected()) {
+        if (mGoogleApiClient.isConnected()) {
             LocationServices.FusedLocationApi.removeLocationUpdates(
                     mGoogleApiClient, this);
         }
     }
 
     protected void startLocationUpdates() {
-        if(mGoogleApiClient.isConnected()) {
+        if (mGoogleApiClient.isConnected()) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
             LocationServices.FusedLocationApi.requestLocationUpdates(
                     mGoogleApiClient, mLocationRequest, this);
         }
@@ -1306,7 +1292,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     snackbarDesconectado = null;
                 }
                 if (snackbarFallo == null) {
-                    snackbarFallo = Snackbar.make(findViewById(android.R.id.content), "Fallo al conectar", Snackbar.LENGTH_INDEFINITE);
+                    snackbarFallo = Snackbar.make(findViewById(android.R.id.content), R.string.error_connect, Snackbar.LENGTH_INDEFINITE);
                     View sbView = snackbarFallo.getView();
                     sbView.setBackgroundColor(Color.RED);
                     TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
@@ -1320,7 +1306,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     snackbarFallo = null;
                 }
                 if (snackbarDesconectado == null) {
-                    snackbarDesconectado = Snackbar.make(findViewById(android.R.id.content), "Desconectado", Snackbar.LENGTH_INDEFINITE);
+                    snackbarDesconectado = Snackbar.make(findViewById(android.R.id.content), R.string.text_desconectado, Snackbar.LENGTH_INDEFINITE);
                     View sbView = snackbarDesconectado.getView();
                     sbView.setBackgroundColor(Color.RED);
                     TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
@@ -1341,7 +1327,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
 
                 if (snackbarConectado == null) {
-                    snackbarConectado = Snackbar.make(findViewById(android.R.id.content), "Conectado", Snackbar.LENGTH_SHORT);
+                    snackbarConectado = Snackbar.make(findViewById(android.R.id.content), R.string.text_conectado, Snackbar.LENGTH_SHORT);
                     View sbView = snackbarConectado.getView();
                     sbView.setBackgroundColor(Color.GREEN);
                     TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
