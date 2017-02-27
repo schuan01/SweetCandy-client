@@ -38,5 +38,7 @@
     <string name="txt_NuevaSolicitud">New Request: </string>
     <string name="txt_QuieresAceptar">Do you want to accept the request?</string>
     <string name="txtEdadMinima">Must be at least 18 years old</string>
+    <string name="txtSubiendo">Uploading Image</string>
+    <string name="txtEdadSnippet">"Age: "</string>
 
 </resources>

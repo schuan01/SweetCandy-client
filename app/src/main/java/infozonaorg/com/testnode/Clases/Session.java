@@ -24,9 +24,14 @@ public class Session
 {
     private SharedPreferences prefs;
 
-    public Session(Context cntx) {
+    public Session(Context cntx, boolean seguro) {
 
-        prefs = new SecurePreferences(cntx);
+
+        if(!seguro)//TODO
+            prefs = new SecurePreferences(cntx);
+        else
+            prefs =  PreferenceManager.getDefaultSharedPreferences(cntx);
+
     }
 
     public void setId(int id)

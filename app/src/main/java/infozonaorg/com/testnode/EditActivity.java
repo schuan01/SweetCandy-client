@@ -1,5 +1,6 @@
 package infozonaorg.com.testnode;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.design.widget.Snackbar;
@@ -14,6 +15,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.InputFilter;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -54,6 +56,8 @@ public class EditActivity extends AppCompatActivity {
         mSocket.on(Socket.EVENT_CONNECT_ERROR, onConnectError);
         mSocket.on(Socket.EVENT_CONNECT_TIMEOUT, onConnectError);
         mSocket.on("fotosobtenidas", onFotosObtenidas);//obtiene el usuario logeado
+        session = new Session(EditActivity.this, true);
+        mSocket.emit("getfotosusuario", session.toJSON());
         //FIN SOCKETS ----------------------------------------------------------------
 
 
@@ -62,6 +66,7 @@ public class EditActivity extends AppCompatActivity {
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
+
     }
 
     private void setupViewPager(ViewPager viewPager) {
@@ -69,6 +74,7 @@ public class EditActivity extends AppCompatActivity {
         adapter.addFragment(new GeneralEditFragment(), "Mi Perfil");
         adapter.addFragment(new PhotoEditFragment(), "Fotos");
         viewPager.setAdapter(adapter);
+
     }
 
     class ViewPagerAdapter extends FragmentPagerAdapter {
@@ -94,6 +100,8 @@ public class EditActivity extends AppCompatActivity {
             mFragmentTitleList.add(title);
         }
 
+
+
         @Override
         public CharSequence getPageTitle(int position) {
             return mFragmentTitleList.get(position);
@@ -103,15 +111,13 @@ public class EditActivity extends AppCompatActivity {
     //Obtiene las fotos
     private Emitter.Listener onFotosObtenidas = new Emitter.Listener() {
         @Override
-        public void call(final Object... args)
-        {
+        public void call(final Object... args) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
 
-                    try
-                    {
-                        session = new Session(EditActivity.this);
+                    try {
+
                         ArrayList<String> fotos = new ArrayList<String>();
                         JSONArray lista = (JSONArray) args[0];//Obtenemos el array del servidor
                         for (int con = 0; con < lista.length(); con++) {
@@ -124,8 +130,7 @@ public class EditActivity extends AppCompatActivity {
 
                         session.setFotos(fotos);
 
-                    } catch (Exception e)
-                    {
+                    } catch (Exception e) {
                         Log.e("Error", e.getMessage());
 
                     }
@@ -143,7 +148,7 @@ public class EditActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    if(!isConnected) {
+                    if (!isConnected) {
                         handleSnackBarConexion("conecto");
                         activarBotones();
                         isConnected = true;
@@ -156,7 +161,7 @@ public class EditActivity extends AppCompatActivity {
     private Emitter.Listener onDisconnect = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
-           runOnUiThread(new Runnable() {
+            runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     desactivarBotones();
@@ -180,28 +185,24 @@ public class EditActivity extends AppCompatActivity {
         }
     };
 
-    private void desactivarBotones()
-    {
+    private void desactivarBotones() {
         //_btnGuardar.setEnabled(false);
 
     }
 
-    private void activarBotones()
-    {
+    private void activarBotones() {
         //_btnGuardar.setEnabled(true);
 
     }
 
-    private void handleSnackBarConexion(String evento)
-    {
+    private void handleSnackBarConexion(String evento) {
         switch (evento) {
             case "fallo":
-                if(snackbarDesconectado != null)
-                {
+                if (snackbarDesconectado != null) {
                     snackbarDesconectado.dismiss();
                     snackbarDesconectado = null;
                 }
-                if(snackbarFallo == null) {
+                if (snackbarFallo == null) {
                     snackbarFallo = Snackbar.make(findViewById(android.R.id.content), R.string.error_connect, Snackbar.LENGTH_INDEFINITE);
                     View sbView = snackbarFallo.getView();
                     sbView.setBackgroundColor(Color.RED);
@@ -211,13 +212,12 @@ public class EditActivity extends AppCompatActivity {
                 }
                 break;
             case "desconecto":
-                if(snackbarFallo != null)
-                {
+                if (snackbarFallo != null) {
                     snackbarFallo.dismiss();
                     snackbarFallo = null;
                 }
-                if(snackbarDesconectado == null) {
-                    snackbarDesconectado = Snackbar.make(findViewById(android.R.id.content),  R.string.disconnect, Snackbar.LENGTH_INDEFINITE);
+                if (snackbarDesconectado == null) {
+                    snackbarDesconectado = Snackbar.make(findViewById(android.R.id.content), R.string.disconnect, Snackbar.LENGTH_INDEFINITE);
                     View sbView = snackbarDesconectado.getView();
                     sbView.setBackgroundColor(Color.RED);
                     TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
@@ -227,20 +227,18 @@ public class EditActivity extends AppCompatActivity {
                 break;
 
             case "conecto":
-                if(snackbarDesconectado != null)
-                {
+                if (snackbarDesconectado != null) {
                     snackbarDesconectado.dismiss();
                     snackbarDesconectado = null;
                 }
 
-                if(snackbarFallo != null)
-                {
+                if (snackbarFallo != null) {
                     snackbarFallo.dismiss();
                     snackbarFallo = null;
                 }
 
-                if(snackbarConectado == null) {
-                    snackbarConectado = Snackbar.make(findViewById(android.R.id.content),R.string.connect, Snackbar.LENGTH_SHORT);
+                if (snackbarConectado == null) {
+                    snackbarConectado = Snackbar.make(findViewById(android.R.id.content), R.string.connect, Snackbar.LENGTH_SHORT);
                     View sbView = snackbarConectado.getView();
                     sbView.setBackgroundColor(Color.GREEN);
                     TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
@@ -253,7 +251,6 @@ public class EditActivity extends AppCompatActivity {
 
             default:
                 break;
-
 
 
         }

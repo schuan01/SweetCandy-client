@@ -7,6 +7,7 @@ import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by jvolpe on 15/12/2016.
@@ -19,8 +20,8 @@ public class Transaccion
     private int idTransaccion;
     private Empleado empleadoTransaccion = null;
     private Cliente clienteTransaccion = null;
-    private Date fechaInicioTransaccion;
-    private Date fechaFinTransaccion;
+    private String fechaInicioTransaccion;
+    private String fechaFinTransaccion;
     private boolean isActiva = false;
     private float totalTransaccion;
 
@@ -51,19 +52,19 @@ public class Transaccion
         this.clienteTransaccion = clienteTransaccion;
     }
 
-    public Date getFechaInicioTransaccion() {
+    public String getFechaInicioTransaccion() {
         return fechaInicioTransaccion;
     }
 
-    public void setFechaInicioTransaccion(Date fechaInicioTransaccion) {
+    public void setFechaInicioTransaccion(String fechaInicioTransaccion) {
         this.fechaInicioTransaccion = fechaInicioTransaccion;
     }
 
-    public Date getFechaFinTransaccion() {
+    public String getFechaFinTransaccion() {
         return fechaFinTransaccion;
     }
 
-    public void setFechaFinTransaccion(Date fechaFinTransaccion) {
+    public void setFechaFinTransaccion(String fechaFinTransaccion) {
         this.fechaFinTransaccion = fechaFinTransaccion;
     }
 
@@ -91,11 +92,15 @@ public class Transaccion
         this.idBusquedaTransaccion = idBusquedaTransaccion;
     }
 
-    public Transaccion(int id, Empleado empleadoTransaccion, Cliente clienteTransaccion, Date fechaInicioTransaccion, Date fechaFinTransaccion, boolean isActiva, float totalTransaccion, int idBusqueda) {
+    public Transaccion(int id, Empleado empleadoTransaccion, Cliente clienteTransaccion, String fechaInicioTransaccion, String fechaFinTransaccion, boolean isActiva, float totalTransaccion, int idBusqueda) {
         setIdTransaccion(id);
         setEmpleadoTransaccion(empleadoTransaccion);
         setClienteTransaccion(clienteTransaccion);
-        setFechaInicioTransaccion(new Date());//Actual siempre
+
+        SimpleDateFormat format= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
+        String hoy = format.format(new Date());
+        setFechaInicioTransaccion(hoy);//Actual siempre
+
         setFechaFinTransaccion(fechaFinTransaccion);
         setActiva(isActiva);
         setTotalTransaccion(totalTransaccion);
@@ -107,8 +112,11 @@ public class Transaccion
         setIdTransaccion(0);
         setEmpleadoTransaccion(new Empleado());
         setClienteTransaccion(new Cliente());
-        setFechaInicioTransaccion(new Date());//Actual siempre
-        setFechaFinTransaccion(new Date());
+
+        SimpleDateFormat format= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
+        String hoy = format.format(new Date());
+        setFechaInicioTransaccion(hoy);//Actual siempre
+        setFechaFinTransaccion(hoy);
         setActiva(false);
         setTotalTransaccion(0.00f);
         setIdBusquedaTransaccion(0);
@@ -117,13 +125,10 @@ public class Transaccion
     public Transaccion(JSONObject obj)
     {
         try {
-
             setClienteTransaccion(new Cliente(obj.getJSONObject("clienteTransaccion")));
             setEmpleadoTransaccion(new Empleado(obj.getJSONObject("empleadoTransaccion")));
-            Date fechaIni = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(obj.getString("fechaInicioTransaccion"));
-            Date fechaFin = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(obj.getString("fechaFinTransaccion"));
-            setFechaInicioTransaccion(fechaIni);
-            setFechaFinTransaccion(fechaFin);
+            setFechaInicioTransaccion(obj.getString("fechaInicioTransaccion"));
+            setFechaFinTransaccion(obj.getString("fechaFinTransaccion"));
             setActiva(obj.getBoolean("isActiva"));
             setIdTransaccion(obj.getInt("id"));
             setTotalTransaccion(Float.parseFloat(obj.getString("totalTransaccion")));

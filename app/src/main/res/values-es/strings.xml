@@ -36,6 +36,9 @@
     <string name="txt_cargando">Cargando…</string>
     <string name="txt_iniciandoSesion">Iniciando sesion</string>
     <string name="txt_NuevaSolicitud">"Nueva solicitud: "</string>
+    <string name="txt_QuieresAceptar">Queres aceptar la solicitud?</string>
     <string name="txtEdadMinima">Debes ser mayor a 18 años y menor a 100</string>
+    <string name="txtSubiendo">Subiendo Imagen</string>
+    <string name="txtEdadSnippet">"Edad: "</string>
 
 </resources>

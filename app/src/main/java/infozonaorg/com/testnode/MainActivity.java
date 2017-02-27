@@ -3,31 +3,16 @@ package infozonaorg.com.testnode;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.design.widget.Snackbar;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.Html;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import com.google.android.gms.maps.model.LatLng;
-
-
-import infozonaorg.com.testnode.Clases.Empleado;
 import infozonaorg.com.testnode.Clases.Session;
-import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -66,7 +51,7 @@ public class MainActivity extends AppCompatActivity
 
                     Intent about = new Intent(MainActivity.this, MapsActivity.class);
                     about.putExtra("tipoBoton","Cliente");
-                    session = new Session(MainActivity.this);
+                    session = new Session(MainActivity.this,true);
                     session.setTipoUsuario("Cliente");
                     startActivity(about);
 

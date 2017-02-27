@@ -47,7 +47,7 @@ public class LoginActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
-        session = new Session(LoginActivity.this);
+        session = new Session(LoginActivity.this,true);
         //SOCKETS ----------------------------------------------------------------
         TestApplication app = (TestApplication) getApplication();
         mSocket = app.getSocket();
@@ -180,7 +180,7 @@ public class LoginActivity extends AppCompatActivity
                         JSONObject usuario = (JSONObject) args[0];//Obtenemos el array del servidor
                         if(usuario != null)
                         {
-                            session = new Session(LoginActivity.this);
+                            session = new Session(LoginActivity.this,true);
                             session.setId(usuario.getInt("id"));
                             session.setUsuario(usuario.getString("usuario"));
                             session.setEmail(usuario.getString("email"));

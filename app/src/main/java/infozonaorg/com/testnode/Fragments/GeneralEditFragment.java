@@ -68,7 +68,7 @@ public class GeneralEditFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_general_edit, container, false);
         ButterKnife.bind(this,v);
 
-        session = new Session(getActivity());
+        session = new Session(getActivity(),true);
         if(session.getTipoUsuario().equals("Empleado")) {
 
             _tituloEditar.setText(_tituloEditar.getText() + " " + session.getUsuario());

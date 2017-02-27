@@ -2,31 +2,35 @@ package infozonaorg.com.testnode.Fragments;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.net.Uri;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.GridView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 
 import org.json.JSONObject;
 
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,22 +55,20 @@ public class PhotoEditFragment extends Fragment {
     private Snackbar snackbarDesconectado = null;
     private Snackbar snackbarFallo = null;
     private static final int IMAGE_PICKER_SELECT = 0;
-    @BindView(R.id.grid_view) GridView _gwvFotos;
-    @BindView(R.id.btnSubirImagen) FloatingActionButton _btnSubirFoto;
+    @BindView(R.id.grid_view)
+    GridView _gwvFotos;
+    @BindView(R.id.btnSubirImagen)
+    FloatingActionButton _btnSubirFoto;
     Cloudinary cloudinary = null;
+    Session session;
 
     // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-    private Session session;
     public static final int MY_PERMISSIONS_READ_EXTERNAL_STORAGE = 1;
-
-    private OnFragmentInteractionListener mListener;
+    InputStream inputStream;
 
     public PhotoEditFragment() {
         // Required empty public constructor
     }
-
 
 
     @Override
@@ -88,9 +90,8 @@ public class PhotoEditFragment extends Fragment {
         //FIN SOCKETS ----------------------------------------------------------------
 
 
-
-
     }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -99,58 +100,101 @@ public class PhotoEditFragment extends Fragment {
                 //Display an error
                 return;
             }
+            try {
+                inputStream = getActivity().getContentResolver().openInputStream(data.getData());
 
-                new Thread(new Runnable() {
-                    @Override
-                    public void run()
-                    {
-                        try
-                        {
-                            InputStream inputStream = getActivity().getContentResolver().openInputStream(data.getData());
-
-                            Map uploadResult = cloudinary.uploader().upload(inputStream, ObjectUtils.emptyMap());
-                            String url = (String) uploadResult.get("url");
-                            session = new Session(getActivity());
-                            ArrayList<String> lista = session.getFotos();
-                            lista.add(url);
-                            session.setFotos(lista);
-                            JSONObject informacion = new JSONObject();
-                            try {
-                                informacion.put("id",session.getId());
-                                informacion.put("urlFoto",url);
-                                mSocket.emit("guardarfoto", informacion);
-
-                            } catch (Exception ex) {
-
-                                Log.e("ERROR",ex.getMessage());
-                            }
+                Upload task = new Upload(cloudinary, getActivity());
+                task.execute("");
 
 
-                        } catch (Exception e) {
-                            Log.e("Error", e.getMessage());
-                        }
-
-                    }
-                }).start();
-
-
+            } catch (Exception e) {
+                Log.e("Error", e.getMessage());
+            }
 
             //Now you can do whatever you want with your inpustream, save it as file, upload to a server, decode a bitmap...
         }
     }
 
+    private class Upload extends AsyncTask<String, Void, String> {
+
+        private ProgressDialog dialog;
+        private Activity activity;
+
+        private Cloudinary mCloudinary;
+        Map uploadResult;
+        private Context context;
+
+        public Upload(Cloudinary cloudinary, Activity activity) {
+            super();
+            mCloudinary = cloudinary;
+            this.activity = activity;
+            context = activity;
+            dialog = new ProgressDialog(context);
+        }
+
+        protected void onPreExecute() {
+
+            this.dialog.setMessage(getString(R.string.txtSubiendo));
+            this.dialog.show();
+
+
+        }
+
+        @Override
+        protected String doInBackground(String... urls) {
+            String response = "";
+
+            try {
+                uploadResult = mCloudinary.uploader().upload(inputStream, ObjectUtils.emptyMap());
+
+            } catch (Exception e) {
+                Log.e("Error", e.getMessage());
+            }
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            try {
+                String url = (String) uploadResult.get("url");
+                session = new Session(getActivity(), true);
+                ArrayList<String> lista = session.getFotos();
+                lista.add(url);
+                session.setFotos(lista);
+                JSONObject informacion = new JSONObject();
+
+                informacion.put("id", session.getId());
+                informacion.put("urlFoto", url);
+                mSocket.emit("guardarfoto", informacion);
+
+            } catch (Exception ex) {
+
+                Log.e("ERROR", ex.getMessage());
+            }
+
+            if (dialog.isShowing()) {
+                dialog.dismiss();
+
+            }
+
+            //RECARGA EL FRAGMENT Y ACTUALIZA LAS FOTOS
+            FragmentTransaction ft = getFragmentManager().beginTransaction();
+            ft.detach(PhotoEditFragment.this).attach(PhotoEditFragment.this).commit();
+        }
+    }
+
+
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState)
-    {
+                             Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_photo_edit, container, false);
-        ButterKnife.bind(this,v);
+        ButterKnife.bind(this, v);
         _gwvFotos.setAdapter(new GridAdapter(getActivity()));
         _gwvFotos.setOnScrollListener(new PhotoScrollListener(getActivity()));
 
         _btnSubirFoto.setOnClickListener(new View.OnClickListener() {
-
-
 
 
             @Override
@@ -191,9 +235,6 @@ public class PhotoEditFragment extends Fragment {
         });
 
         // Inflate the layout for this fragment
-
-
-
 
 
         return v;
@@ -238,31 +279,13 @@ public class PhotoEditFragment extends Fragment {
         }
     }
 
-
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
-    }
-
-
     private Emitter.Listener onConnect = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    if(!isConnected) {
+                    if (!isConnected) {
                         handleSnackBarConexion("conecto");
                         activarBotones();
                         isConnected = true;
@@ -299,28 +322,24 @@ public class PhotoEditFragment extends Fragment {
         }
     };
 
-    private void desactivarBotones()
-    {
+    private void desactivarBotones() {
         _btnSubirFoto.setEnabled(false);
 
     }
 
-    private void activarBotones()
-    {
+    private void activarBotones() {
         _btnSubirFoto.setEnabled(true);
 
     }
 
-    private void handleSnackBarConexion(String evento)
-    {
+    private void handleSnackBarConexion(String evento) {
         switch (evento) {
             case "fallo":
-                if(snackbarDesconectado != null)
-                {
+                if (snackbarDesconectado != null) {
                     snackbarDesconectado.dismiss();
                     snackbarDesconectado = null;
                 }
-                if(snackbarFallo == null) {
+                if (snackbarFallo == null) {
                     snackbarFallo = Snackbar.make(getActivity().findViewById(android.R.id.content), R.string.error_connect, Snackbar.LENGTH_INDEFINITE);
                     View sbView = snackbarFallo.getView();
                     sbView.setBackgroundColor(Color.RED);
@@ -330,13 +349,12 @@ public class PhotoEditFragment extends Fragment {
                 }
                 break;
             case "desconecto":
-                if(snackbarFallo != null)
-                {
+                if (snackbarFallo != null) {
                     snackbarFallo.dismiss();
                     snackbarFallo = null;
                 }
-                if(snackbarDesconectado == null) {
-                    snackbarDesconectado = Snackbar.make(getActivity().findViewById(android.R.id.content),  R.string.disconnect, Snackbar.LENGTH_INDEFINITE);
+                if (snackbarDesconectado == null) {
+                    snackbarDesconectado = Snackbar.make(getActivity().findViewById(android.R.id.content), R.string.disconnect, Snackbar.LENGTH_INDEFINITE);
                     View sbView = snackbarDesconectado.getView();
                     sbView.setBackgroundColor(Color.RED);
                     TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
@@ -346,20 +364,18 @@ public class PhotoEditFragment extends Fragment {
                 break;
 
             case "conecto":
-                if(snackbarDesconectado != null)
-                {
+                if (snackbarDesconectado != null) {
                     snackbarDesconectado.dismiss();
                     snackbarDesconectado = null;
                 }
 
-                if(snackbarFallo != null)
-                {
+                if (snackbarFallo != null) {
                     snackbarFallo.dismiss();
                     snackbarFallo = null;
                 }
 
-                if(snackbarConectado == null) {
-                    snackbarConectado = Snackbar.make(getActivity().findViewById(android.R.id.content),R.string.connect, Snackbar.LENGTH_SHORT);
+                if (snackbarConectado == null) {
+                    snackbarConectado = Snackbar.make(getActivity().findViewById(android.R.id.content), R.string.connect, Snackbar.LENGTH_SHORT);
                     View sbView = snackbarConectado.getView();
                     sbView.setBackgroundColor(Color.GREEN);
                     TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
@@ -374,7 +390,8 @@ public class PhotoEditFragment extends Fragment {
                 break;
 
 
-
         }
     }
 }
+
+

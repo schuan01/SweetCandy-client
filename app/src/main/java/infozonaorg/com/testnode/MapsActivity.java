@@ -6,7 +6,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.location.Location;
 import android.net.Uri;
 import android.os.CountDownTimer;
@@ -59,6 +63,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -185,7 +192,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         if (tipoUsuario != null && tipoUsuario.equals("Empleado")) {
-            session = new Session(MapsActivity.this);
+            session = new Session(MapsActivity.this, true);
             empleadoConectado.setId(session.getId());
             empleadoConectado.setUsuario(session.getUsuario());
             empleadoConectado.setEmail(session.getEmail());
@@ -516,9 +523,39 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             lstEmpleadosCercanos.add(e);
                         }
 
+
                         for (Empleado e : lstEmpleadosCercanos) {
                             if (e.getUbicacion() != null) {
-                                mMap.addMarker(new MarkerOptions().position(e.getUbicacion()).title(e.getUsuario()).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE)));
+                                //------------PRUEBA CANVAS ----------------------
+                                Bitmap.Config conf = Bitmap.Config.ARGB_8888;
+                                Bitmap bmp = Bitmap.createBitmap(80, 80, conf);
+                                Canvas canvas1 = new Canvas(bmp);
+
+                                // paint defines the text color, stroke width and size
+                                Paint color = new Paint();
+                                color.setTextSize(35);
+                                color.setColor(Color.BLACK);
+
+                                // modify canvas
+                                canvas1.drawBitmap(BitmapFactory.decodeResource(getResources(),
+                                        R.drawable.ic_account), 0, 0, color);
+                                canvas1.drawText(e.getUsuario(), 30, 40, color);
+
+                                URL url = new URL("");
+                                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                                conn.setDoInput(true);
+                                conn.connect();
+                                InputStream is = conn.getInputStream();
+                                Bitmap bmImg = BitmapFactory.decodeStream(is);
+
+                                // add marker to Map
+                                mMap.addMarker(new MarkerOptions().position(e.getUbicacion())
+                                        .icon(BitmapDescriptorFactory.fromBitmap(bmImg))
+                                        // Specifies the anchor to be at a particular point in the marker image.
+                                        .anchor(0.5f, 1));
+                                //------------------------------------------------
+
+                                //mMap.addMarker(new MarkerOptions().position(e.getUbicacion()).title(e.getUsuario()).snippet(getString(R.string.txtEdadSnippet + e.getEdad())).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE)));
                             } else {
                                 Log.w("onCercanos", "Ubicacion de " + e.getUsuario() + " no encontrada");
                             }
@@ -580,7 +617,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                                 JSONObject transaccion = null;
                                                 try {
                                                     tr.setActiva(true);//Empieza a estar activa
-                                                    tr.setFechaFinTransaccion(null);
+                                                    tr.setFechaFinTransaccion("");
                                                     tr.setEmpleadoTransaccion(empleadoConectado);
                                                     tr.setClienteTransaccion(clienteSolicitud);
                                                     transaccion = tr.toJSON();
@@ -676,10 +713,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         transaccionActual = new Transaccion();
                         transaccionActual.setIdTransaccion(data.getInt("id"));
                         transaccionActual.setActiva(true);
-                        Date fechaIni = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(data.getString("fechaInicioTransaccion"));
-                        transaccionActual.setFechaInicioTransaccion(fechaIni);
+                        transaccionActual.setFechaInicioTransaccion(data.getString("fechaInicioTransaccion"));
                         transaccionActual.setEmpleadoTransaccion(new Empleado(new JSONObject(data.getString("empleadoTransaccion"))));
                         transaccionActual.setClienteTransaccion(new Cliente(new JSONObject(data.getString("clienteTransaccion"))));
+                        transaccionActual.setIdBusquedaTransaccion(data.getInt("idBusquedaTransaccion"));
                         transaccionActiva = true;
                         btnFinalizarTransaccion.setVisibility(View.VISIBLE);
                         btnCancelarBusqueda.setVisibility(View.GONE);
@@ -702,7 +739,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     };
 
-    //Obtiene los usuarios cercanos cuando el servidor lo manda
+    //Finaliza la transaccion en la UI
     private Emitter.Listener onTransaccionFinalizada = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
@@ -724,7 +761,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         btnBuscarDisponible.setVisibility(View.VISIBLE);
                         mSocket.on("empleadoscercanos", onCercanos);//Escucho los empleados cercanos
                         mSocket.on("solicitudcliente", onSolicitudCliente);//Vuelvo a escuchar
-                        dibujarTransaccion();
 
 
                     } catch (Exception e) {
@@ -1080,6 +1116,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             options.add(clienteT.getPosition());
             options.add(empleadoT.getPosition());
             mMap.addPolyline(options);
+
         }
     }
 
@@ -1113,7 +1150,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             JSONObject empleado = null;
             JSONObject transaccion = null;
 
-            try {
+            Transaccion ta = new Transaccion();
+            ta.setClienteTransaccion(c);
+
+            mSocket.emit("buscardisponible", ta.toJSON());
+
+            /*try {
                 cliente = c.toJSON();
                 cliente.put("tipo", "Cliente");
                 empleado = empleadoConectado.toJSON();
@@ -1144,7 +1186,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             jsonArray.put(empleado);
             jsonArray.put(transaccion);
 
-            mSocket.emit("aceptarsolicitud", jsonArray);
+            mSocket.emit("aceptarsolicitud", jsonArray);*/
             //BORRAR------------------------------------------------------
         }
 
@@ -1190,7 +1232,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     mGoogleApiClient, mLocationRequest, this);
         }
     }
-
 
 
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -1257,28 +1298,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     protected void onStart() {
-        Log.w("onStart() Maps","Ejecutado");
+        Log.w("onStart() Maps", "Ejecutado");
         mGoogleApiClient.connect();
         super.onStart();
     }
 
     protected void onStop() {
 
-        Log.w("onStop() Maps","Ejecutado");
+        Log.w("onStop() Maps", "Ejecutado");
 
         mGoogleApiClient.disconnect();
         super.onStop();
     }
 
-    private void desactivarBotones()
-    {
+    private void desactivarBotones() {
         btnBuscarDisponible.setEnabled(false);
         btnCancelarBusqueda.setEnabled(false);
 
     }
 
-    private void activarBotones()
-    {
+    private void activarBotones() {
         btnBuscarDisponible.setEnabled(true);
         btnCancelarBusqueda.setEnabled(true);
 
@@ -1345,9 +1384,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void cancelarBusqueda()
-    {
-        if(buscandoEmpleado) {
+    private void cancelarBusqueda() {
+        if (buscandoEmpleado) {
             buscandoEmpleado = false;
             mSocket.emit("cancelarsolicitud", clienteConectado.toJSON());
             btnCancelarBusqueda.setVisibility(View.GONE);
@@ -1357,9 +1395,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    private void finalizarTransaccion()
-    {
-        if(transaccionActiva) {
+    private void finalizarTransaccion() {
+        if (transaccionActiva) {
 
             mSocket.emit("finalizartransaccion", transaccionActual.toJSON());
 
