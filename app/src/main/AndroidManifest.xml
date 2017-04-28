@@ -59,7 +59,9 @@
         <activity
             android:name=".EditActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".TransaccionesActivity"></activity>
+        <activity android:name=".TransaccionesActivity" />
+        <activity android:name=".MarkerInfoActivity" />
+        <activity android:name=".Utils.FullscreenViewActivity"></activity>
     </application>
 
 </manifest>

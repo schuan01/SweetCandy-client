@@ -9,4 +9,5 @@ public class Constantes {
     //public static final String SERVER_URL="http://10.0.2.2:3000";//URL LOCALHOST
     public static final int LIMITE_CERCANOS= 2;//KM CERCANOS
     public static final String TEXTOFIJO = "U1dFRVRDQU5EWVBST0pFQ1Q=";
+    public static final int MAX_FOTOS = 5;//Maxima cantidad de fotos permitida
 }

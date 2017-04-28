@@ -11,23 +11,15 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
-import android.text.InputFilter;
 import android.util.Log;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import infozonaorg.com.testnode.Clases.Empleado;
 import infozonaorg.com.testnode.Clases.Session;
 import infozonaorg.com.testnode.Fragments.GeneralEditFragment;
 import infozonaorg.com.testnode.Fragments.PhotoEditFragment;

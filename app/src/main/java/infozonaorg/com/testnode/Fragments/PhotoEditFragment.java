@@ -46,6 +46,8 @@ import infozonaorg.com.testnode.Utils.PhotoScrollListener;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
+import static infozonaorg.com.testnode.Constantes.MAX_FOTOS;
+
 public class PhotoEditFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -55,10 +57,8 @@ public class PhotoEditFragment extends Fragment {
     private Snackbar snackbarDesconectado = null;
     private Snackbar snackbarFallo = null;
     private static final int IMAGE_PICKER_SELECT = 0;
-    @BindView(R.id.grid_view)
-    GridView _gwvFotos;
-    @BindView(R.id.btnSubirImagen)
-    FloatingActionButton _btnSubirFoto;
+    @BindView(R.id.grid_view) GridView _gwvFotos;
+    @BindView(R.id.btnSubirImagen) FloatingActionButton _btnSubirFoto;
     Cloudinary cloudinary = null;
     Session session;
 
@@ -88,6 +88,12 @@ public class PhotoEditFragment extends Fragment {
         mSocket.on(Socket.EVENT_CONNECT_ERROR, onConnectError);
         mSocket.on(Socket.EVENT_CONNECT_TIMEOUT, onConnectError);
         //FIN SOCKETS ----------------------------------------------------------------
+
+        session = new Session(getActivity(), true);
+        if(!permiteSubirFotos())
+        {
+            desactivarBotones();
+        }
 
 
     }
@@ -157,7 +163,7 @@ public class PhotoEditFragment extends Fragment {
         protected void onPostExecute(String result) {
             try {
                 String url = (String) uploadResult.get("url");
-                session = new Session(getActivity(), true);
+
                 ArrayList<String> lista = session.getFotos();
                 lista.add(url);
                 session.setFotos(lista);
@@ -199,38 +205,38 @@ public class PhotoEditFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
-                // Start the Signup activity
-                // Here, thisActivity is the current activity
-                if (ContextCompat.checkSelfPermission(getActivity(),
-                        Manifest.permission.READ_EXTERNAL_STORAGE)
-                        != PackageManager.PERMISSION_GRANTED) {
+                if(permiteSubirFotos()) {
+                    if (ContextCompat.checkSelfPermission(getActivity(),
+                            Manifest.permission.READ_EXTERNAL_STORAGE)
+                            != PackageManager.PERMISSION_GRANTED) {
 
-                    // Should we show an explanation?
-                    if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(),
-                            Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                        // Should we show an explanation?
+                        if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(),
+                                Manifest.permission.READ_EXTERNAL_STORAGE)) {
 
-                        // Show an expanation to the user *asynchronously* -- don't block
-                        // this thread waiting for the user's response! After the user
-                        // sees the explanation, try again to request the permission.
+                            // Show an expanation to the user *asynchronously* -- don't block
+                            // this thread waiting for the user's response! After the user
+                            // sees the explanation, try again to request the permission.
 
-                    } else {
+                        } else {
 
-                        // No explanation needed, we can request the permission.
+                            // No explanation needed, we can request the permission.
 
-                        ActivityCompat.requestPermissions(getActivity(),
-                                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                                MY_PERMISSIONS_READ_EXTERNAL_STORAGE);
+                            ActivityCompat.requestPermissions(getActivity(),
+                                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                                    MY_PERMISSIONS_READ_EXTERNAL_STORAGE);
 
-                        // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-                        // app-defined int constant. The callback method gets the
-                        // result of the request.
+                            // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                            // app-defined int constant. The callback method gets the
+                            // result of the request.
+                        }
                     }
-                }
 
-                Intent i = new Intent(
-                        Intent.ACTION_PICK,
-                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(i, IMAGE_PICKER_SELECT);
+                    Intent i = new Intent(
+                            Intent.ACTION_PICK,
+                            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    startActivityForResult(i, IMAGE_PICKER_SELECT);
+                }
             }
         });
 
@@ -238,6 +244,17 @@ public class PhotoEditFragment extends Fragment {
 
 
         return v;
+
+    }
+
+    private boolean permiteSubirFotos()
+    {
+        if(session.getFotos().size() >= MAX_FOTOS)//Si hay mas de lo indicado, no deja subir
+        {
+            return false;
+        }
+
+        return true;
 
     }
 

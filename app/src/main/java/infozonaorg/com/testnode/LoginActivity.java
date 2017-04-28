@@ -15,9 +15,11 @@ import android.widget.TextView;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;;
+import java.security.MessageDigest;
+import java.util.Objects;;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import infozonaorg.com.testnode.Capas.LogicaUsuario;
 import infozonaorg.com.testnode.Clases.Session;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -29,12 +31,7 @@ public class LoginActivity extends AppCompatActivity
     private Socket mSocket;
     private Boolean isConnected = true;
     private Session session;
-    private Snackbar snackbarConectado = null;
-    private Snackbar snackbarDesconectado = null;
-    private Snackbar snackbarFallo = null;
-    private String passwordTmp = "";
     private ProgressDialog progress;
-    private boolean test = true;
 
 
     @BindView(R.id.input_email) EditText _emailText;
@@ -58,29 +55,31 @@ public class LoginActivity extends AppCompatActivity
         mSocket.on("usuariologeado", onLoginResult);//obtiene el usuario logeado
         //FIN SOCKETS ----------------------------------------------------------------
 
+        if(Objects.equals(session.getTipoUsuario(), "Empleado")) {//Si no esta como Empleado
+            if (session.getId() != 0) {
+                progress = ProgressDialog.show(this, getString(R.string.txt_cargando),
+                        getString(R.string.txt_iniciandoSesion), true);
 
-        if(session.getId() != 0)
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        autoLogin();//Proceso el autologin
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+
+                            }
+                        });
+                    }
+                }).start();
+
+            }
+        }
+        else
         {
-            progress = ProgressDialog.show(this, getString(R.string.txt_cargando),
-                    getString(R.string.txt_iniciandoSesion), true);
-
-            new Thread(new Runnable() {
-                @Override
-                public void run()
-                {
-
-                    autoLogin();//Proceso el autologin
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run()
-                        {
-
-                        }
-                    });
-                }
-            }).start();
-
+            session.clearAll();
         }
 
 
@@ -139,31 +138,7 @@ public class LoginActivity extends AppCompatActivity
                 String email = _emailText.getText().toString();
                 String password = _passwordText.getText().toString();
 
-                email.toLowerCase();
-                password.toLowerCase();
-                try {
-                    MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                    password += Constantes.TEXTOFIJO;
-                    byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
-                    password = Base64.encodeToString(hash, Base64.DEFAULT);
-                    passwordTmp = password;
-                }
-                catch (Exception ex)
-                {
-                    Log.e("ERROR",ex.getMessage());
-                }
-
-                JSONObject informacion = new JSONObject();
-                try {
-                    informacion.put("email", email);
-                    informacion.put("password", password);
-
-                } catch (JSONException e) {
-
-                    Log.e("Error",e.getMessage());
-                }
-
-                mSocket.emit("loginempleado", informacion);
+                mSocket.emit("loginusuario", LogicaUsuario.makeLogin(email,password));
             }
 
     //Obtiene el usuario logeado correctamente
@@ -176,8 +151,19 @@ public class LoginActivity extends AppCompatActivity
                 public void run() {
                     try
                     {
-
                         JSONObject usuario = (JSONObject) args[0];//Obtenemos el array del servidor
+
+                        if(LogicaUsuario.onLoginResult(session,usuario))
+                        {
+                            onLoginSuccess();
+                        }
+                        else
+                        {
+                            onLoginFailed();
+                        }
+
+
+                        /*
                         if(usuario != null)
                         {
                             session = new Session(LoginActivity.this,true);
@@ -196,7 +182,7 @@ public class LoginActivity extends AppCompatActivity
                         else
                         {
                             onLoginFailed();
-                        }
+                        }*/
                     } catch (Exception e)
                     {
                         Log.e("Error", e.getMessage());
@@ -250,12 +236,7 @@ public class LoginActivity extends AppCompatActivity
 
     public void onLoginFailed() {
         estadoInput();
-        Snackbar fallo = Snackbar.make(findViewById(android.R.id.content), R.string.error_connect, Snackbar.LENGTH_INDEFINITE);
-        View sbView = fallo.getView();
-        sbView.setBackgroundColor(Color.RED);
-        TextView tv = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
-        tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-        fallo.show();
+        LogicaUsuario.handleSnackBarConexion("fallo",LoginActivity.this);
         _loginButton.setEnabled(true);
         progress.dismiss();
     }
@@ -364,7 +345,17 @@ public class LoginActivity extends AppCompatActivity
 
     private void handleSnackBarConexion(String evento)
     {
-        switch (evento) {
+
+        Snackbar estado = LogicaUsuario.handleSnackBarConexion(evento,LoginActivity.this);
+        if(estado != null)
+        {
+            estado.show();
+            if(evento.equals("fallo") || evento.equals("desconecto") )
+            {
+                desactivarBotones();
+            }
+        }
+        /*switch (evento) {
             case "fallo":
                 if(snackbarDesconectado != null)
                 {
@@ -426,7 +417,7 @@ public class LoginActivity extends AppCompatActivity
 
 
 
-        }
+        }*/
     }
 
 

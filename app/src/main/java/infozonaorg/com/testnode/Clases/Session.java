@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.securepreferences.SecurePreferences;
 
 import org.json.JSONArray;
@@ -118,9 +119,23 @@ public class Session
         return col;
     }
 
+    public void setUltimaUbicacion(LatLng ubi)
+    {
+        prefs.edit().putFloat("latitud", (float)(ubi.latitude)).apply();
+        prefs.edit().putFloat("longitud", (float)(ubi.longitude)).apply();
+    }
+
+    public float[] getUltimaUbicacion()
+    {
+        float[] valores = new float[2];
+        valores[0] = prefs.getFloat("latitud",0);//Primer indice latitud
+        valores[1] = prefs.getFloat("longitud",0);//Segundo indice longitud
+        return valores;
+    }
+
     public void clearAll()
     {
-        prefs.edit().clear().commit();
+        prefs.edit().clear().apply();
     }
 
     public JSONObject toJSON(){

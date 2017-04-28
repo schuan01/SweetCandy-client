@@ -20,17 +20,7 @@ import java.util.List;
 public class Empleado extends Usuario {
 
     private float rating;
-    private String descripcion;
     private float costo;
-    private ArrayList<String> fotos;//DEVUELVE LAS URL DE CADA DRAWABLE
-
-    public ArrayList<String> getFotos() {
-        return fotos;
-    }
-
-    public void setFotos(ArrayList<String> fotos) {
-        this.fotos = fotos;
-    }
 
     public float getRating() {
         return rating;
@@ -40,13 +30,6 @@ public class Empleado extends Usuario {
         this.rating = rating;
     }
 
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
 
     public float getCosto() {
         return costo;
@@ -60,12 +43,10 @@ public class Empleado extends Usuario {
 
 
     public Empleado(int id,String usuario, String urlFoto, LatLng ubicacion, int edad, Boolean isOnline, float rating, String descripcion, float costo, String email, String password, ArrayList<String> imagenes) {
-        super(id,usuario, urlFoto, ubicacion, edad,isOnline,email,password);
+        super(id,usuario, urlFoto, ubicacion, edad,isOnline,email,password,descripcion,imagenes);
 
         setRating(rating);
-        setDescripcion(descripcion);
         setCosto(costo);
-        setFotos(imagenes);
     }
 
     public Empleado(JSONObject obj)
@@ -73,7 +54,6 @@ public class Empleado extends Usuario {
         super(obj);
         try {
 
-        setDescripcion(obj.getString("descripcion"));
         setCosto(Float.parseFloat(obj.getString("costo")));
         setRating(Float.parseFloat(obj.getString("rating")));
 
@@ -87,9 +67,7 @@ public class Empleado extends Usuario {
         super();
 
         setRating(0.0f);
-        setDescripcion("Default");
         setCosto(0);
-        setFotos(new ArrayList<String>());
 
     }
 
@@ -100,7 +78,6 @@ public class Empleado extends Usuario {
         JSONObject jsonObject= super.toJSON();
 
         jsonObject.put("rating", getRating());
-        jsonObject.put("descripcion", getDescripcion());
         jsonObject.put("costo", getCosto());
 
         return jsonObject;

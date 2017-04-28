@@ -1,8 +1,13 @@
 package infozonaorg.com.testnode.Clases;
 
+import android.util.Log;
+
 import com.google.android.gms.maps.model.LatLng;
 
+import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 /**
  * Created by jvolpe on 30/11/2016.
@@ -10,55 +15,52 @@ import org.json.JSONObject;
 
 public class Cliente extends Usuario {
 
-    //TODO IGUAL AL USUARIO NORMAL
+    private float rating;
 
-    @Override
-    public String getUrlFoto() {
-        return super.getUrlFoto();
+    public float getRating() {
+        return rating;
     }
 
-    @Override
-    public void setUrlFoto(String urlFoto) {
-        super.setUrlFoto(urlFoto);
+    public void setRating(float rating) {
+        this.rating = rating;
     }
 
-    @Override
-    public LatLng getUbicacion() {
-        return super.getUbicacion();
-    }
+    public Cliente(int id,String usuario, String urlFoto, LatLng ubicacion, int edad, Boolean isOnline, float rating, float costo, String email, String password, String descripcion,ArrayList<String> imagenes) {
+        super(id,usuario, urlFoto, ubicacion, edad, isOnline, email,password,descripcion,imagenes);
 
-    @Override
-    public void setUbicacion(LatLng ubicacion) {
-        super.setUbicacion(ubicacion);
-    }
-
-    @Override
-    public int getEdad() {
-        return super.getEdad();
-    }
-
-    @Override
-    public void setEdad(int edad) {
-        super.setEdad(edad);
-    }
-
-    @Override
-    public String getUsuario() {
-        return super.getUsuario();
-    }
-
-    @Override
-    public void setUsuario(String usu) {
-        super.setUsuario(usu);
-    }
-
-    public Cliente(int id,String usuario, String urlFoto, LatLng ubicacion, int edad, Boolean isOnline, String email,String password) {
-        super(id,usuario, urlFoto, ubicacion, edad, isOnline, email,password);
+        setRating(rating);
     }
 
     public Cliente() {
         super();
+        setRating(0.0f);
     }
 
-    public Cliente(JSONObject obj){super(obj);}
+    public Cliente(JSONObject obj){
+        super(obj);
+        try {
+
+            setRating(Float.parseFloat(obj.getString("rating")));
+
+        } catch (JSONException e)
+        {
+            Log.e("Error",e.getMessage());
+        }
+    }
+
+    @Override
+    public JSONObject toJSON()
+    {
+        try {
+            JSONObject jsonObject= super.toJSON();
+
+            jsonObject.put("rating", getRating());
+
+            return jsonObject;
+        } catch (JSONException e)
+        {
+            Log.e("ERROR",e.getMessage());
+            return null;
+        }
+    }
 }

@@ -1,16 +1,11 @@
 package infozonaorg.com.testnode;
 
 import android.Manifest;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.location.Location;
 import android.net.Uri;
 import android.os.CountDownTimer;
@@ -25,7 +20,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.dd.processbutton.iml.ActionProcessButton;
@@ -62,21 +56,19 @@ import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import infozonaorg.com.testnode.Capas.LogicaTransaccion;
+import infozonaorg.com.testnode.Capas.LogicaUsuario;
 import infozonaorg.com.testnode.Clases.Cliente;
 import infozonaorg.com.testnode.Clases.Empleado;
 import infozonaorg.com.testnode.Clases.Session;
 import infozonaorg.com.testnode.Clases.Transaccion;
+import infozonaorg.com.testnode.Utils.FullscreenViewActivity;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
@@ -84,7 +76,8 @@ import io.socket.emitter.Emitter;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+        LocationListener
+{
 
     private static final String LOCATION_KEY = "";
     private static final String REQUESTING_LOCATION_UPDATES_KEY = "";
@@ -98,11 +91,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private List<Empleado> lstEmpleadosCercanos = new ArrayList<Empleado>();
     private Socket mSocket;
     private Boolean isConnected = true;
-    private String tipoUsuario = "";
     private Session session;
-    private Snackbar snackbarConectado = null;
-    private Snackbar snackbarDesconectado = null;
-    private Snackbar snackbarFallo = null;
 
     @BindView(R.id.btnBuscarDisponible)
     Button btnBuscarDisponible;
@@ -135,14 +124,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //Alerta Aceptar solicituds
     AlertDialog alertaSolicitud = null;
 
-    //Transaccion Actual
-    Transaccion transaccionActual = null;
-
     //Para dibujar en el mapa el trazo de distancia
     private PolylineOptions options = null;
-
-    //Para saber si hay una transaccion activa actualmente
-    boolean transaccionActiva = false;
 
     private Drawer result = null;
 
@@ -151,12 +134,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //Timer para cancelar
     CountDownTimer timer = null;
-
-    //Cliente solicitud
-    Cliente clienteSolicitud = null;
-
-    //Procesando
-    //ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -181,30 +158,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mSocket.on("solicitudcliente", onSolicitudCliente);//solicitud aceptada del servidor
         mSocket.on("solicitudcancelada", onSolicitudCancelada);//solicitud cancelada del servidor
         mSocket.on("transaccioniniciada", onTransaccionIniciada);//comieza la transaccion
-        mSocket.on("transaccionfinalizada", onTransaccionIniciada);//comieza la transaccion
-        mSocket.on("clienteanonimoconectado", onClienteAnonimoConectado);//cuando conecta un cliente
-        mSocket.on("transaccionfinalizada", onTransaccionFinalizada);//cuando finaliza la transaccion
+        mSocket.on("transaccionfinalizada", onTransaccionFinalizada);//finaliza la transaccion
+        mSocket.on("clienteanonimoconectado", onClienteAnonimoConectado);//cuando conecta un cliente anonimo
+        mSocket.on("solicitudrecibida", onSolicitudRecibidaCliente);//cuando un cliente especifico envia una solicitud directa
+
 
         //LO QUE VIENE DEL MAIN ACTIVITY
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            tipoUsuario = extras.getString("tipoBoton");
+            LogicaUsuario.setTipoUsuario(extras.getString("tipoBoton"));
         }
 
-        if (tipoUsuario != null && tipoUsuario.equals("Empleado")) {
-            session = new Session(MapsActivity.this, true);
+        session = new Session(MapsActivity.this, true);
+
+        if (LogicaUsuario.getTipoUsuario() != null && LogicaUsuario.getTipoUsuario().equals("Empleado")) {
+
             empleadoConectado.setId(session.getId());
             empleadoConectado.setUsuario(session.getUsuario());
             empleadoConectado.setEmail(session.getEmail());
             empleadoConectado.setDescripcion(session.getDescripcion());
-
-
         }
 
-        if (tipoUsuario != null && tipoUsuario.equals("Cliente")) {
-            clienteConectado.setUsuario("Cliente Anonimo");
+        if (LogicaUsuario.getTipoUsuario() != null && LogicaUsuario.getTipoUsuario().equals("Cliente")) {
+
+            clienteConectado.setUsuario(session.getUsuario());
             clienteConectado.setOnline(true);
-            clienteConectado.setEdad(20);
+            clienteConectado.setEdad(session.getEdad());
             mSocket.emit("conectarclienteanonimo", clienteConectado.toJSON());
 
         }
@@ -224,7 +203,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         IProfile profile3 = null;
-        if (tipoUsuario.equals("Empleado")) {
+        if (LogicaUsuario.getTipoUsuario().equals("Empleado")) {
             profile3 = new ProfileDrawerItem().withName(empleadoConectado.getUsuario()).withEmail(empleadoConectado.getEmail()).withIcon(Uri.parse("https://s-media-cache-ak0.pinimg.com/736x/4d/b2/4b/4db24b16ab66d4829fad06aa05c866b5.jpg")).withIdentifier(102);
         } else {
             profile3 = new ProfileDrawerItem().withName("Anonimo").withEmail("").withIcon(Uri.parse("https://s-media-cache-ak0.pinimg.com/736x/4d/b2/4b/4db24b16ab66d4829fad06aa05c866b5.jpg")).withIdentifier(102);
@@ -312,7 +291,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View arg0) {
 
-                finalizarTransaccion();
+                if (LogicaTransaccion.getTransaccionActual().isActiva()) {
+
+                    mSocket.emit("finalizartransaccion", LogicaTransaccion.getTransaccionActual().toJSON());
+
+                }
 
             }
         });
@@ -323,7 +306,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View arg0) {
 
-                cancelarBusqueda();
+                if (buscandoEmpleado) {
+                    buscandoEmpleado = false;
+                    mSocket.emit("cancelarsolicitud", clienteConectado.toJSON());
+                    btnCancelarBusqueda.setVisibility(View.GONE);
+                    btnCancelarBusqueda.setProgress(0);
+                    btnBuscarDisponible.setVisibility(View.VISIBLE);
+                }
 
             }
         });
@@ -443,6 +432,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.setMyLocationEnabled(true);
 
         }
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            public boolean onMarkerClick(Marker marker) {
+
+
+                try {
+                    if(!Objects.equals(marker.getTitle(), marcadorYo.getTitle())) {//Si no soy yo
+                        String s = marker.getSnippet();//El id del solicitante(cliente)
+
+                        session.setUltimaUbicacion(marcadorYo.getPosition());//Le paso la ultima ubicacion conocida
+
+                        Intent about = new Intent(MapsActivity.this, FullscreenViewActivity.class);
+                        about.putExtra("idMarker", s);
+                        MapsActivity.this.startActivity(about);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    Log.e("Error",ex.getMessage());
+                }
+
+                return true;
+            }
+        });
 
 
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
@@ -492,6 +504,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     try {
                         JSONObject data = (JSONObject) args[0];//Obtenemos el unico elemento
                         clienteConectado = new Cliente(data);
+                        session.setId(clienteConectado.getId());
 
                     } catch (Exception e) {
                         Log.e("Error", e.getMessage());
@@ -526,7 +539,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                         for (Empleado e : lstEmpleadosCercanos) {
                             if (e.getUbicacion() != null) {
-                                //------------PRUEBA CANVAS ----------------------
+                                /*//------------PRUEBA CANVAS ----------------------
                                 Bitmap.Config conf = Bitmap.Config.ARGB_8888;
                                 Bitmap bmp = Bitmap.createBitmap(80, 80, conf);
                                 Canvas canvas1 = new Canvas(bmp);
@@ -551,16 +564,73 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 // add marker to Map
                                 mMap.addMarker(new MarkerOptions().position(e.getUbicacion())
                                         .icon(BitmapDescriptorFactory.fromBitmap(bmImg))
+                                        .snippet(Integer.toString(e.getId()))//ID DEL CERCANO
                                         // Specifies the anchor to be at a particular point in the marker image.
                                         .anchor(0.5f, 1));
-                                //------------------------------------------------
+                                //------------------------------------------------*/
 
-                                //mMap.addMarker(new MarkerOptions().position(e.getUbicacion()).title(e.getUsuario()).snippet(getString(R.string.txtEdadSnippet + e.getEdad())).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE)));
+                                mMap.addMarker(new MarkerOptions().position(e.getUbicacion())
+                                        .title(e.getUsuario())
+                                        .snippet(Integer.toString(e.getId()))//ID DEL CERCANO
+                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE)));
                             } else {
                                 Log.w("onCercanos", "Ubicacion de " + e.getUsuario() + " no encontrada");
                             }
 
                         }
+
+                    } catch (Exception e) {
+                        Log.e("Error", e.getMessage());
+
+                    }
+                }
+            });
+
+
+        }
+    };
+
+    //Obtiene la solicitud de un cliente que fue enviada directo
+    private Emitter.Listener onSolicitudRecibidaCliente = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            MapsActivity.this.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+
+                            if (alertaSolicitud == null) {
+
+                                //UN SOLO METODO QUE RESUELVE ESTO
+                                final Transaccion tr = LogicaTransaccion.onSolicitudCliente((JSONObject) args[0]);
+
+                                mSocket.off("solicitudcliente", onSolicitudCliente);//Dejo de escuchar hasta que el empleado acepte
+                                mSocket.off("solicitudrecibida", onSolicitudRecibidaCliente);//Dejo de escuchar hasta que el empleado acepte
+                                alertaSolicitud = new AlertDialog.Builder(MapsActivity.this)
+                                        .setTitle(getString(R.string.txt_NuevaSolicitud) + tr.getClienteTransaccion().getUsuario())
+                                        .setMessage(R.string.txt_QuieresAceptar)
+                                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+
+                                                mSocket.emit("aceptarsolicitud", tr);
+                                                alertaSolicitud = null;
+                                                LogicaTransaccion.setClienteSolicitud(null);
+
+                                            }
+                                        })
+                                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                mSocket.on("solicitudcliente", onSolicitudCliente);
+                                                mSocket.on("solicitudrecibida", onSolicitudRecibidaCliente);
+                                                alertaSolicitud = null;
+                                                LogicaTransaccion.setClienteSolicitud(null);
+
+                                            }
+                                        })
+                                        .setIcon(android.R.drawable.ic_dialog_alert)
+                                        .show();
+                            }
+
 
                     } catch (Exception e) {
                         Log.e("Error", e.getMessage());
@@ -581,80 +651,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 @Override
                 public void run() {
                     try {
-                        if (tipoUsuario.equals("Empleado")) {
-                            if (alertaSolicitud == null) {
-                                final JSONObject data = (JSONObject) args[0];//Obtenemos el unico elemento
-                                final Transaccion tr = new Transaccion(data);
-                                clienteSolicitud = tr.getClienteTransaccion();
+                        if (alertaSolicitud == null) {
+                            //UN SOLO METODO QUE RESUELVE ESTO
+                            final Transaccion tr = LogicaTransaccion.onSolicitudCliente((JSONObject)args[0]);
+                            mSocket.off("solicitudcliente", onSolicitudCliente);//Dejo de escuchar hasta que el empleado acepte
 
-                                mSocket.off("solicitudcliente", onSolicitudCliente);//Dejo de escuchar hasta que el empleado acepte
-                                alertaSolicitud = new AlertDialog.Builder(MapsActivity.this)
-                                        .setTitle(getString(R.string.txt_NuevaSolicitud) + clienteSolicitud.getUsuario())
-                                        .setMessage(R.string.txt_QuieresAceptar)
-                                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int which) {
+                            alertaSolicitud = new AlertDialog.Builder(MapsActivity.this)
+                                    .setTitle(getString(R.string.txt_NuevaSolicitud) + tr.getClienteTransaccion().getUsuario())
+                                    .setMessage(R.string.txt_QuieresAceptar)
+                                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int which) {
 
-                                                JSONObject cliente = clienteSolicitud.toJSON();
-                                                try {
+                                            mSocket.emit("aceptarsolicitud", tr);
+                                            alertaSolicitud = null;
+                                            LogicaTransaccion.setClienteSolicitud(null);
 
-                                                    cliente.put("tipo", "Cliente");
+                                        }
+                                    })
+                                    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            mSocket.on("solicitudcliente", onSolicitudCliente);
+                                            alertaSolicitud = null;
+                                            LogicaTransaccion.setClienteSolicitud(null);
 
-                                                } catch (JSONException e) {
+                                        }
+                                    })
+                                    .setIcon(android.R.drawable.ic_dialog_alert)
+                                    .show();
 
-                                                    Log.e("Error", e.getMessage());
-                                                }
-
-                                                JSONObject empleado = empleadoConectado.toJSON();
-                                                try {
-
-                                                    empleado.put("tipo", "Empleado");
-
-                                                } catch (JSONException e) {
-
-                                                    Log.e("Error", e.getMessage());
-                                                }
-
-                                                JSONObject transaccion = null;
-                                                try {
-                                                    tr.setActiva(true);//Empieza a estar activa
-                                                    tr.setFechaFinTransaccion("");
-                                                    tr.setEmpleadoTransaccion(empleadoConectado);
-                                                    tr.setClienteTransaccion(clienteSolicitud);
-                                                    transaccion = tr.toJSON();
-                                                    transaccion.put("tipo", "Transaccion");
-
-                                                } catch (JSONException e) {
-
-                                                    Log.e("Error", e.getMessage());
-                                                }
-
-                                                JSONArray jsonArray = new JSONArray();
-
-                                                jsonArray.put(cliente);
-                                                jsonArray.put(empleado);
-                                                jsonArray.put(transaccion);
-
-                                                mSocket.emit("aceptarsolicitud", jsonArray);
-                                                alertaSolicitud = null;
-                                                clienteSolicitud = null;
-                                            }
-                                        })
-                                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                mSocket.on("solicitudcliente", onSolicitudCliente);
-                                                alertaSolicitud = null;
-                                                clienteSolicitud = null;
-                                            }
-                                        })
-                                        .setIcon(android.R.drawable.ic_dialog_alert)
-                                        .show();
-                            }
                         }
 
                     } catch (Exception e) {
                         Log.e("Error", e.getMessage());
 
                     }
+
                 }
             });
 
@@ -670,14 +701,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 @Override
                 public void run() {
                     try {
-                        if (tipoUsuario.equals("Empleado")) {
+                        if (LogicaUsuario.getTipoUsuario().equals("Empleado")) {
                             if (alertaSolicitud != null)//Si el mensaje esta mostrado en la pantalla
                             {
                                 final JSONObject data = (JSONObject) args[0];//Obtenemos el unico elemento
 
-                                if (clienteSolicitud != null)//Si hay un cliente mostrado
+                                if (LogicaTransaccion.getClienteSolicitud() != null)//Si hay un cliente mostrado
                                 {
-                                    if (clienteSolicitud.getId() == data.getInt("id"))//Si es el mismo cliente mostrado que el de la solicitud
+                                    if (LogicaTransaccion.getClienteSolicitud().getId() == data.getInt("id"))//Si es el mismo cliente mostrado que el de la solicitud
                                     {
                                         alertaSolicitud.dismiss();
                                         alertaSolicitud = null;
@@ -700,7 +731,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     };
 
-    //Obtiene los usuarios cercanos cuando el servidor lo manda
+    //Recibe la confirmacion de la transaccion iniciada
     private Emitter.Listener onTransaccionIniciada = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
@@ -709,7 +740,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 public void run() {
                     try {
                         mSocket.off("empleadoscercanos", onCercanos);//Dejo de escuchar hasta que finalice
-                        final JSONObject data = (JSONObject) args[0];//Obtenemos el unico elemento
+                        LogicaTransaccion.onTransaccionIniciada((JSONObject) args[0]);
+                        /*final JSONObject data = (JSONObject) args[0];//Obtenemos el unico elemento
                         transaccionActual = new Transaccion();
                         transaccionActual.setIdTransaccion(data.getInt("id"));
                         transaccionActual.setActiva(true);
@@ -717,7 +749,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         transaccionActual.setEmpleadoTransaccion(new Empleado(new JSONObject(data.getString("empleadoTransaccion"))));
                         transaccionActual.setClienteTransaccion(new Cliente(new JSONObject(data.getString("clienteTransaccion"))));
                         transaccionActual.setIdBusquedaTransaccion(data.getInt("idBusquedaTransaccion"));
-                        transaccionActiva = true;
+                        transaccionActiva = true;*/
                         btnFinalizarTransaccion.setVisibility(View.VISIBLE);
                         btnCancelarBusqueda.setVisibility(View.GONE);
                         btnCancelarBusqueda.setProgress(0);
@@ -747,14 +779,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 @Override
                 public void run() {
                     try {
+                        LogicaTransaccion.onTransaccionFinalizada();//Setea a null nomas
+
                         btnBuscarDisponible.setVisibility(View.VISIBLE);
                         btnCancelarBusqueda.setVisibility(View.GONE);
                         btnCancelarBusqueda.setMode(ActionProcessButton.Mode.ENDLESS);
                         btnCancelarBusqueda.setProgress(0);
                         btnFinalizarTransaccion.setVisibility(View.GONE);
                         buscandoEmpleado = false;
-                        transaccionActiva = false;
-                        transaccionActual = null;
+                        //transaccionActual = null;
                         btnFinalizarTransaccion.setVisibility(View.GONE);
                         btnCancelarBusqueda.setVisibility(View.GONE);
                         btnCancelarBusqueda.setProgress(0);
@@ -858,7 +891,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //TODO
         //Sacar el desconectar del onDestroy y manejarlo mejor
         Log.w("onDestroy() Maps", "Ejecutado");
-        if (tipoUsuario.equals("Empleado")) {
+        if (LogicaUsuario.getTipoUsuario().equals("Empleado")) {
             desconectarUsuario();
         } else {
             desconectarClienteAnonimo();
@@ -869,7 +902,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void desconectarUsuario() {
-        if (tipoUsuario.equals("Empleado")) {
+        if (LogicaUsuario.getTipoUsuario().equals("Empleado")) {
             JSONObject informacion = new JSONObject();
             try {
                 informacion = empleadoConectado.toJSON();
@@ -885,7 +918,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void desconectarClienteAnonimo() {
-        if (tipoUsuario.equals("Cliente")) {
+        if (LogicaUsuario.getTipoUsuario().equals("Cliente")) {
             JSONObject informacion = new JSONObject();
             try {
                 informacion = clienteConectado.toJSON();
@@ -965,7 +998,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()), 15.0f));//Mi ubicacion
 
 
-            if (tipoUsuario.equals("Cliente")) {
+            if (LogicaUsuario.getTipoUsuario().equals("Cliente")) {
                 //TODO
                 //Borrar el marcador YO ya que voy a usar el marcador por defecto del mapa(punto azul)
 
@@ -987,13 +1020,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
 
 
-                if (!transaccionActiva || transaccionActual == null) {
+                if (LogicaTransaccion.getTransaccionActual() == null || !LogicaTransaccion.getTransaccionActual().isActiva()) {
                     //Manda la info necesaria para saber cercanos en el servidor
                     mSocket.emit("getcercanos", informacion);
                 }
             }
 
-            if (tipoUsuario.equals("Empleado")) {
+            if (LogicaUsuario.getTipoUsuario().equals("Empleado")) {
                 marcadorYo = mMap.addMarker(new MarkerOptions().position(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()))
                         .title(empleadoConectado.getUsuario())
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
@@ -1039,15 +1072,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void updateUI() {
         if (mLastLocation != null) {
             mMap.clear();
-            if (tipoUsuario.equals("Cliente")) {
+            if (LogicaUsuario.getTipoUsuario().equals("Cliente")) {
                 marcadorYo = mMap.addMarker(new MarkerOptions().position(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()))
                         .title(clienteConectado.getUsuario())
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
 
                 clienteConectado.setUbicacion(marcadorYo.getPosition());
 
-                if (transaccionActiva && transaccionActual != null) {
-                    transaccionActual.getClienteTransaccion().setUbicacion(marcadorYo.getPosition());
+                if (LogicaTransaccion.getTransaccionActual() != null && LogicaTransaccion.getTransaccionActual().isActiva()) {
+                    LogicaTransaccion.getTransaccionActual().getClienteTransaccion().setUbicacion(marcadorYo.getPosition());
                 }
 
                 JSONObject informacion = new JSONObject();
@@ -1061,12 +1094,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
 
                 //Manda la info necesaria para saber cercanos en el servidor
-                if (!transaccionActiva || transaccionActual == null) {
+                if (LogicaTransaccion.getTransaccionActual() == null || !LogicaTransaccion.getTransaccionActual().isActiva()) {
                     mSocket.emit("getcercanos", informacion);
                 }
             }
 
-            if (tipoUsuario.equals("Empleado")) {
+            if (LogicaUsuario.getTipoUsuario().equals("Empleado")) {
                 marcadorYo = mMap.addMarker(new MarkerOptions().position(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()))
                         .title(empleadoConectado.getUsuario())
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
@@ -1074,8 +1107,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //Le seteamos la ubicacion marcada
                 empleadoConectado.setUbicacion(marcadorYo.getPosition());
 
-                if (transaccionActiva && transaccionActual != null) {
-                    transaccionActual.getEmpleadoTransaccion().setUbicacion(marcadorYo.getPosition());
+                if (LogicaTransaccion.getTransaccionActual() != null && LogicaTransaccion.getTransaccionActual().isActiva()) {
+                    LogicaTransaccion.getTransaccionActual().getEmpleadoTransaccion().setUbicacion(marcadorYo.getPosition());
                 }
 
 
@@ -1105,12 +1138,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void dibujarTransaccion() {
 
-        if (transaccionActiva && transaccionActual != null) {
+        if (LogicaTransaccion.getTransaccionActual() != null && LogicaTransaccion.getTransaccionActual().isActiva()) {
             mMap.clear();
 
-            Marker clienteT = mMap.addMarker(new MarkerOptions().position(transaccionActual.getClienteTransaccion().getUbicacion()).title(transaccionActual.getClienteTransaccion().getUsuario())
+            Marker clienteT = mMap.addMarker(new MarkerOptions().position(LogicaTransaccion.getTransaccionActual().getClienteTransaccion().getUbicacion()).title(LogicaTransaccion.getTransaccionActual().getClienteTransaccion().getUsuario())
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-            Marker empleadoT = mMap.addMarker(new MarkerOptions().position(transaccionActual.getEmpleadoTransaccion().getUbicacion()).title(transaccionActual.getEmpleadoTransaccion().getUsuario())
+            Marker empleadoT = mMap.addMarker(new MarkerOptions().position(LogicaTransaccion.getTransaccionActual().getEmpleadoTransaccion().getUbicacion()).title(LogicaTransaccion.getTransaccionActual().getEmpleadoTransaccion().getUsuario())
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
             options = new PolylineOptions().width(5).color(Color.BLUE).geodesic(true);
             options.add(clienteT.getPosition());
@@ -1121,7 +1154,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void buscarEmpleadoDisponible() {
-        if (tipoUsuario.equals("Cliente")) {
+        if (LogicaUsuario.getTipoUsuario().equals("Cliente")) {
             try {
                 btnBuscarDisponible.setVisibility(View.GONE);
                 btnCancelarBusqueda.setVisibility(View.VISIBLE);
@@ -1141,7 +1174,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
 
 
-        } else if (tipoUsuario.equals("Empleado")) {
+        } else if (LogicaUsuario.getTipoUsuario().equals("Empleado")) {
             //TODO
             //BORRAR
             Cliente c = new Cliente();
@@ -1324,6 +1357,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void handleSnackBarConexion(String evento) {
+
+        Snackbar estado = LogicaUsuario.handleSnackBarConexion(evento,MapsActivity.this);
+        if(estado != null)
+        {
+            estado.show();
+            if(evento.equals("fallo") || evento.equals("desconecto") )
+            {
+                desactivarBotones();
+            }
+        }
+        /*
         switch (evento) {
             case "fallo":
                 if (snackbarDesconectado != null) {
@@ -1381,25 +1425,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 break;
 
 
-        }
+        }*/
     }
 
-    private void cancelarBusqueda() {
-        if (buscandoEmpleado) {
-            buscandoEmpleado = false;
-            mSocket.emit("cancelarsolicitud", clienteConectado.toJSON());
-            btnCancelarBusqueda.setVisibility(View.GONE);
-            btnCancelarBusqueda.setProgress(0);
-            btnBuscarDisponible.setVisibility(View.VISIBLE);
-        }
 
-    }
-
-    private void finalizarTransaccion() {
-        if (transaccionActiva) {
-
-            mSocket.emit("finalizartransaccion", transaccionActual.toJSON());
-
-        }
-    }
 }

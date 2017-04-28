@@ -9,6 +9,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import infozonaorg.com.testnode.Capas.LogicaUsuario;
 import infozonaorg.com.testnode.Clases.Session;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -18,10 +20,6 @@ public class MainActivity extends AppCompatActivity
 {
     private Socket mSocket;
     private Boolean isConnected = true;
-
-    private Snackbar snackbarConectado = null;
-    private Snackbar snackbarDesconectado = null;
-    private Snackbar snackbarFallo = null;
     private Session session;
 
 
@@ -30,6 +28,7 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+        session = new Session(MainActivity.this,true);
         try
         {
             /*//Borro la session si hay
@@ -49,10 +48,13 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void onClick(View arg0) {
 
+                    session.clearAll();//Si entra en anonimo, que limpie todo
                     Intent about = new Intent(MainActivity.this, MapsActivity.class);
                     about.putExtra("tipoBoton","Cliente");
                     session = new Session(MainActivity.this,true);
-                    session.setTipoUsuario("Cliente");
+                    session.setTipoUsuario("Anonimo");
+                    session.setUsuario("Anonimo");
+                    session.setEdad(20);
                     startActivity(about);
 
                 }
@@ -91,6 +93,9 @@ public class MainActivity extends AppCompatActivity
             Log.e("ERROR",ex.getMessage());
         }
     }
+
+
+
 
     private void conectarSokect()
     {
@@ -225,7 +230,18 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void handleSnackBarConexion(String evento) {
-            switch (evento) {
+
+        Snackbar estado = LogicaUsuario.handleSnackBarConexion(evento,MainActivity.this);
+        if(estado != null)
+        {
+            estado.show();
+            if(evento.equals("fallo") || evento.equals("desconecto") )
+            {
+                desactivarBotones();
+            }
+        }
+
+           /* switch (evento) {
                 case "fallo":
                     if (snackbarDesconectado != null) {
                         snackbarDesconectado.dismiss();
@@ -287,7 +303,7 @@ public class MainActivity extends AppCompatActivity
                     break;
 
 
-            }
+            }*/
         }
 
 }

@@ -16,7 +16,7 @@ import java.util.ArrayList;
  * Created by jvolpe on 29/11/2016.
  */
 
-public class Usuario
+public abstract class Usuario
 {
 
     private int id;
@@ -27,6 +27,8 @@ public class Usuario
     private Boolean isOnline;
     private String email;
     private String password;
+    private String descripcion;
+    private ArrayList<String> fotos;//DEVUELVE LAS URL DE CADA DRAWABLE
 
 
     public String getPassword() {
@@ -101,7 +103,24 @@ public class Usuario
         usuario = usu;
     }
 
-    public Usuario(int id, String usuario, String urlFoto, LatLng ubicacion, int edad, Boolean isOnline, String email, String password) {
+    public ArrayList<String> getFotos() {
+        return fotos;
+    }
+
+    public void setFotos(ArrayList<String> fotos) {
+        this.fotos = fotos;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+
+    public Usuario(int id, String usuario, String urlFoto, LatLng ubicacion, int edad, Boolean isOnline, String email, String password,String descripcion, ArrayList<String> imagenes) {
         setId(id);
         setUsuario(usuario);
         setUrlFoto(urlFoto);
@@ -110,6 +129,8 @@ public class Usuario
         setOnline(isOnline);
         setEmail(email);
         setPassword(password);
+        setDescripcion(descripcion);
+        setFotos(imagenes);
 
     }
 
@@ -123,6 +144,7 @@ public class Usuario
             setEdad(obj.getInt("edad"));
             setOnline(obj.getBoolean("isOnline"));
             setEmail(obj.getString("email"));
+            setDescripcion(obj.getString("descripcion"));
         }
         catch (JSONException e)
         {
@@ -143,6 +165,8 @@ public class Usuario
         setOnline(false);
         setEmail("test@test.com");
         setPassword("1234");
+        setDescripcion("Default");
+        setFotos(new ArrayList<String>());
 
     }
 
@@ -158,6 +182,7 @@ public class Usuario
             jsonObject.put("latitud", getUbicacion().latitude);
             jsonObject.put("longitud", getUbicacion().longitude);
             jsonObject.put("urlFoto", getUrlFoto());
+            jsonObject.put("descripcion", getDescripcion());
 
             return jsonObject;
         } catch (JSONException e) {
