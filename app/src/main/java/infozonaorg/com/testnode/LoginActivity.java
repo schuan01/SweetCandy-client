@@ -219,7 +219,7 @@ public class LoginActivity extends AppCompatActivity
             Log.e("Error",e.getMessage());
         }
 
-        mSocket.emit("loginempleado", informacion);
+        mSocket.emit("loginusuario", informacion);
     }
 
     public void onLoginSuccess() {
@@ -227,7 +227,7 @@ public class LoginActivity extends AppCompatActivity
         progress.dismiss();
         finish();
         Intent about = new Intent(LoginActivity.this, MapsActivity.class);
-        about.putExtra("tipoBoton","Empleado");
+        about.putExtra("tipoBoton",session.getTipoUsuario());//Viene de la logica Login
         about.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         about.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(about);

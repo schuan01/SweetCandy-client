@@ -29,6 +29,7 @@ public abstract class Usuario
     private String password;
     private String descripcion;
     private ArrayList<String> fotos;//DEVUELVE LAS URL DE CADA DRAWABLE
+    private float rating;
 
 
     public String getPassword() {
@@ -120,7 +121,17 @@ public abstract class Usuario
     }
 
 
-    public Usuario(int id, String usuario, String urlFoto, LatLng ubicacion, int edad, Boolean isOnline, String email, String password,String descripcion, ArrayList<String> imagenes) {
+
+    public float getRating() {
+        return rating;
+    }
+
+    public void setRating(float rating) {
+        this.rating = rating;
+    }
+
+
+    public Usuario(int id, String usuario, String urlFoto, LatLng ubicacion, int edad, Boolean isOnline, String email, String password,String descripcion, ArrayList<String> imagenes, float rating) {
         setId(id);
         setUsuario(usuario);
         setUrlFoto(urlFoto);
@@ -131,6 +142,7 @@ public abstract class Usuario
         setPassword(password);
         setDescripcion(descripcion);
         setFotos(imagenes);
+        setRating(rating);
 
     }
 
@@ -145,6 +157,7 @@ public abstract class Usuario
             setOnline(obj.getBoolean("isOnline"));
             setEmail(obj.getString("email"));
             setDescripcion(obj.getString("descripcion"));
+            setRating((float)obj.getDouble("rating"));
         }
         catch (JSONException e)
         {
@@ -167,6 +180,7 @@ public abstract class Usuario
         setPassword("1234");
         setDescripcion("Default");
         setFotos(new ArrayList<String>());
+        setRating(0.0f);
 
     }
 
@@ -183,6 +197,7 @@ public abstract class Usuario
             jsonObject.put("longitud", getUbicacion().longitude);
             jsonObject.put("urlFoto", getUrlFoto());
             jsonObject.put("descripcion", getDescripcion());
+            jsonObject.put("rating",getRating());
 
             return jsonObject;
         } catch (JSONException e) {

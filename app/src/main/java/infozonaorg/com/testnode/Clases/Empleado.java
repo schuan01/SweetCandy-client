@@ -19,16 +19,7 @@ import java.util.List;
 
 public class Empleado extends Usuario {
 
-    private float rating;
     private float costo;
-
-    public float getRating() {
-        return rating;
-    }
-
-    public void setRating(float rating) {
-        this.rating = rating;
-    }
 
 
     public float getCosto() {
@@ -43,9 +34,8 @@ public class Empleado extends Usuario {
 
 
     public Empleado(int id,String usuario, String urlFoto, LatLng ubicacion, int edad, Boolean isOnline, float rating, String descripcion, float costo, String email, String password, ArrayList<String> imagenes) {
-        super(id,usuario, urlFoto, ubicacion, edad,isOnline,email,password,descripcion,imagenes);
+        super(id,usuario, urlFoto, ubicacion, edad,isOnline,email,password,descripcion,imagenes,rating);
 
-        setRating(rating);
         setCosto(costo);
     }
 
@@ -55,7 +45,6 @@ public class Empleado extends Usuario {
         try {
 
         setCosto(Float.parseFloat(obj.getString("costo")));
-        setRating(Float.parseFloat(obj.getString("rating")));
 
         } catch (JSONException e)
         {
@@ -65,8 +54,6 @@ public class Empleado extends Usuario {
 
     public Empleado() {
         super();
-
-        setRating(0.0f);
         setCosto(0);
 
     }
@@ -77,7 +64,6 @@ public class Empleado extends Usuario {
         try {
         JSONObject jsonObject= super.toJSON();
 
-        jsonObject.put("rating", getRating());
         jsonObject.put("costo", getCosto());
 
         return jsonObject;

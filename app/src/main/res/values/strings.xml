@@ -41,4 +41,9 @@
     <string name="txtSubiendo">Uploading Image</string>
     <string name="txtEdadSnippet">"Age: "</string>
 
+    <string-array name="tiposUsuario">
+        <item>Client</item>
+        <item>Service</item>
+    </string-array>
+
 </resources>
