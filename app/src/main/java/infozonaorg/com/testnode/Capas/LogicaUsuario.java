@@ -1,7 +1,6 @@
 package infozonaorg.com.testnode.Capas;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Color;
 import android.support.design.widget.Snackbar;
 import android.util.Base64;
@@ -16,10 +15,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
 import infozonaorg.com.testnode.Clases.Session;
+import infozonaorg.com.testnode.Clases.Usuario;
 import infozonaorg.com.testnode.Constantes;
 import infozonaorg.com.testnode.R;
-import infozonaorg.com.testnode.TestApplication;
-import io.socket.client.Socket;
 
 /**
  * Created by jvolpe on 21/04/2017.
@@ -33,6 +31,7 @@ public abstract class LogicaUsuario {
     private static Snackbar snackbarFallo = null;
     private static String tipoUsuario = "";
     private static String passwordTmp = "";//para autologin
+    private static Usuario usuarioConectado = null;//Se usa para simular una session
 
     public static JSONObject makeLogin(String email, String password)
     {
@@ -171,6 +170,16 @@ public abstract class LogicaUsuario {
         return retorno;
     }
 
+    public static void setUsuarioActual(Usuario u)
+    {
+        usuarioConectado = u;
+    }
+
+    public static Usuario getUsuarioActual()
+    {
+        return usuarioConectado;
+    }
+
     public static void setTipoUsuario(String usu)
     {
         tipoUsuario = usu;
@@ -180,7 +189,5 @@ public abstract class LogicaUsuario {
     {
         return tipoUsuario;
     }
-
-
 
 }

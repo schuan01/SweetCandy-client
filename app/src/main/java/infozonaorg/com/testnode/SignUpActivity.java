@@ -245,13 +245,6 @@ public class SignUpActivity extends AppCompatActivity implements AdapterView.OnI
         return valid;
     }
 
-    @Override
-    public void onDestroy()
-    {
-        super.onDestroy();
-    }
-
-
     //Obtiene los usuarios conectados cuando el servidor lo manda
     private Emitter.Listener onEmpleadoCreado = new Emitter.Listener() {
         @Override
